@@ -35,17 +35,17 @@
   <Layout>
     <DimensionLayout dim="0">
       <Group type="103" groupAlignment="0" attributes="0">
-          <Component id="txtPassword" alignment="1" max="32767" attributes="0"/>
+          <Component id="JFrame" alignment="1" max="32767" attributes="0"/>
       </Group>
     </DimensionLayout>
     <DimensionLayout dim="1">
       <Group type="103" groupAlignment="0" attributes="0">
-          <Component id="txtPassword" alignment="1" max="32767" attributes="0"/>
+          <Component id="JFrame" alignment="1" max="32767" attributes="0"/>
       </Group>
     </DimensionLayout>
   </Layout>
   <SubComponents>
-    <Container class="javax.swing.JPanel" name="txtPassword">
+    <Container class="javax.swing.JPanel" name="JFrame">
       <Properties>
         <Property name="border" type="javax.swing.border.Border" editor="org.netbeans.modules.form.editors2.BorderEditor">
           <Border info="org.netbeans.modules.form.compat2.border.LineBorderInfo">
@@ -76,7 +76,7 @@
                                   <EmptySpace min="-2" pref="58" max="-2" attributes="0"/>
                                   <Group type="103" groupAlignment="0" max="-2" attributes="0">
                                       <Component id="txtUsername" max="32767" attributes="0"/>
-                                      <Component id="jPasswordField1" min="-2" pref="169" max="-2" attributes="0"/>
+                                      <Component id="txtPassword" min="-2" pref="169" max="-2" attributes="0"/>
                                       <Component id="Checkbox" alignment="0" min="-2" pref="119" max="-2" attributes="0"/>
                                   </Group>
                               </Group>
@@ -107,7 +107,7 @@
                   <EmptySpace min="-2" pref="20" max="-2" attributes="0"/>
                   <Group type="103" groupAlignment="3" attributes="0">
                       <Component id="lblPassword" alignment="3" min="-2" max="-2" attributes="0"/>
-                      <Component id="jPasswordField1" alignment="3" min="-2" max="-2" attributes="0"/>
+                      <Component id="txtPassword" alignment="3" min="-2" max="-2" attributes="0"/>
                   </Group>
                   <EmptySpace type="separate" max="-2" attributes="0"/>
                   <Component id="Checkbox" min="-2" max="-2" attributes="0"/>
@@ -164,7 +164,7 @@
             <Property name="text" type="java.lang.String" value="Exit"/>
           </Properties>
         </Component>
-        <Component class="javax.swing.JPasswordField" name="jPasswordField1">
+        <Component class="javax.swing.JPasswordField" name="txtPassword">
         </Component>
         <Component class="javax.swing.JCheckBox" name="Checkbox">
           <Properties>
