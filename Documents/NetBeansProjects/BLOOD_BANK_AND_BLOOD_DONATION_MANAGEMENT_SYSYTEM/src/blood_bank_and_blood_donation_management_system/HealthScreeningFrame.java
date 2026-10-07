@@ -3,6 +3,10 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JFrame.java to edit this template
  */
 package blood_bank_and_blood_donation_management_system;
+import java.sql.*;
+import javax.swing.JOptionPane;
+import java.util.Vector;
+import javax.swing.table.DefaultTableModel;
 
 /**
  *
@@ -17,6 +21,12 @@ public class HealthScreeningFrame extends javax.swing.JFrame {
      */
     public HealthScreeningFrame() {
         initComponents();
+        
+        setTitle("Blood Bank System - Health Screening");
+        setLocationRelativeTo(null);
+        setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE); 
+        
+        loadData();
     }
 
     /**
@@ -35,7 +45,7 @@ public class HealthScreeningFrame extends javax.swing.JFrame {
         btnAdd = new javax.swing.JButton();
         btnClear = new javax.swing.JButton();
         btnBack = new javax.swing.JButton();
-        jButton1 = new javax.swing.JButton();
+        btnSearch = new javax.swing.JButton();
         txtSearch = new javax.swing.JTextField();
         lblSearch = new javax.swing.JLabel();
         jScrollPane1 = new javax.swing.JScrollPane();
@@ -77,28 +87,34 @@ public class HealthScreeningFrame extends javax.swing.JFrame {
         btnDelete.setBackground(new java.awt.Color(255, 204, 204));
         btnDelete.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
         btnDelete.setText("Delete");
+        btnDelete.addActionListener(this::btnDeleteActionPerformed);
         jPanel1.add(btnDelete, new org.netbeans.lib.awtextra.AbsoluteConstraints(230, 350, -1, 33));
 
         btnUpdate.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
         btnUpdate.setText("Update");
+        btnUpdate.addActionListener(this::btnUpdateActionPerformed);
         jPanel1.add(btnUpdate, new org.netbeans.lib.awtextra.AbsoluteConstraints(140, 350, -1, 33));
 
         btnAdd.setBackground(new java.awt.Color(204, 255, 204));
         btnAdd.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
         btnAdd.setText("Add");
+        btnAdd.addActionListener(this::btnAddActionPerformed);
         jPanel1.add(btnAdd, new org.netbeans.lib.awtextra.AbsoluteConstraints(60, 350, -1, 33));
 
         btnClear.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
         btnClear.setText("Clear");
+        btnClear.addActionListener(this::btnClearActionPerformed);
         jPanel1.add(btnClear, new org.netbeans.lib.awtextra.AbsoluteConstraints(320, 350, -1, 33));
 
         btnBack.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
         btnBack.setText("Back to Menu");
+        btnBack.addActionListener(this::btnBackActionPerformed);
         jPanel1.add(btnBack, new org.netbeans.lib.awtextra.AbsoluteConstraints(640, 350, -1, 33));
 
-        jButton1.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
-        jButton1.setText("Search");
-        jPanel1.add(jButton1, new org.netbeans.lib.awtextra.AbsoluteConstraints(340, 390, -1, 30));
+        btnSearch.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
+        btnSearch.setText("Search");
+        btnSearch.addActionListener(this::btnSearchActionPerformed);
+        jPanel1.add(btnSearch, new org.netbeans.lib.awtextra.AbsoluteConstraints(340, 390, -1, 30));
         jPanel1.add(txtSearch, new org.netbeans.lib.awtextra.AbsoluteConstraints(120, 390, 207, 30));
 
         lblSearch.setText("Search:");
@@ -116,6 +132,11 @@ public class HealthScreeningFrame extends javax.swing.JFrame {
                 "ID", "Donor", "Staff", "Date", "Wt", "BP", "Pulse", "Temp", "Hb", "Eligible"
             }
         ));
+        jTable1.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                jTable1MouseClicked(evt);
+            }
+        });
         jScrollPane1.setViewportView(jTable1);
 
         jPanel1.add(jScrollPane1, new org.netbeans.lib.awtextra.AbsoluteConstraints(50, 430, 730, 125));
@@ -136,9 +157,7 @@ public class HealthScreeningFrame extends javax.swing.JFrame {
 
         lblScreeningDate.setText("Screening Date:");
 
-        txtDateOfScreening.setFont(new java.awt.Font("Segoe UI", 0, 8)); // NOI18N
-        txtDateOfScreening.setForeground(new java.awt.Color(204, 204, 204));
-        txtDateOfScreening.setText("yyyy-mm-dd");
+        txtDateOfScreening.setText("yyyy-mm-dd hh-mm-ss");
 
         lblBloodPressure.setText("Blood Pressure:");
 
@@ -147,13 +166,19 @@ public class HealthScreeningFrame extends javax.swing.JFrame {
 
         lblStaff.setText("Staff:");
 
+        Weight.setModel(new javax.swing.SpinnerNumberModel(70.0d, null, null, 1.0d));
+
         lblWeight.setText("Weight(Kgs):");
 
         lblPulse.setText("Pulse Rate:");
 
         lblTemperature.setText("Temperature(C):");
 
+        Temperature.setModel(new javax.swing.SpinnerNumberModel(36.5d, null, null, 1.0d));
+
         lblHaemoglobin.setText("Haemoglobin(g/dL):");
+
+        Haemoglobin.setModel(new javax.swing.SpinnerNumberModel(0.0d, null, null, 1.0d));
 
         lblEligibility.setText("Eligible:");
 
@@ -195,7 +220,7 @@ public class HealthScreeningFrame extends javax.swing.JFrame {
                                 .addComponent(lblHaemoglobin)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                                 .addComponent(Haemoglobin, javax.swing.GroupLayout.PREFERRED_SIZE, 215, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                        .addGap(34, 34, 34)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addGroup(jPanel2Layout.createSequentialGroup()
                                 .addComponent(lblEligibility)
@@ -270,12 +295,12 @@ public class HealthScreeningFrame extends javax.swing.JFrame {
                             .addComponent(jCheckBoxEligible))))
                 .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(jPanel2Layout.createSequentialGroup()
-                        .addGap(18, 18, 18)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addGroup(jPanel2Layout.createSequentialGroup()
                         .addGap(46, 46, 46)
                         .addComponent(lblRemarks)))
-                .addContainerGap(14, Short.MAX_VALUE))
+                .addContainerGap(26, Short.MAX_VALUE))
         );
 
         jPanel1.add(jPanel2, new org.netbeans.lib.awtextra.AbsoluteConstraints(25, 64, -1, 280));
@@ -296,10 +321,235 @@ public class HealthScreeningFrame extends javax.swing.JFrame {
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
+    private void btnAddActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnAddActionPerformed
+        if (jComboBoxDonor.getSelectedItem() == null || jComboBoxStaff.getSelectedItem() == null) {
+            JOptionPane.showMessageDialog(this, "Please make sure you have Donors and Staff (Doctors/Nurses) in the system.");
+            return;
+        }
+
+        String dateStr = txtDateOfScreening.getText().trim();
+        String bp = txtBloodPressure.getText().trim();
+        String remarks = jTextArea1.getText().trim();
+        boolean eligible = jCheckBoxEligible.isSelected();
+
+        // Extract IDs from ComboBoxes
+        String donorItem = (String) jComboBoxDonor.getSelectedItem();
+        int donorId = Integer.parseInt(donorItem.split(" - ")[0]);
+        
+        String staffItem = (String) jComboBoxStaff.getSelectedItem();
+        int staffId = Integer.parseInt(staffItem.split(" - ")[0]);
+
+        if (dateStr.equals("yyyy-mm-dd hh:mm:ss") || dateStr.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Please enter a valid Screening Date.");
+            return;
+        }
+
+        // Get values from spinners
+        double weight = ((Number) Weight.getValue()).doubleValue();
+        int pulseRate = ((Number) pulse.getValue()).intValue();
+        double temp = ((Number) Temperature.getValue()).doubleValue();
+        double hb = ((Number) Haemoglobin.getValue()).doubleValue();
+
+        String sql = "INSERT INTO health_screening (donor_id, staff_id, screening_date, weight_kg, "
+                   + "blood_pressure, pulse_rate, temperature_c, hemoglobin_gdl, is_eligible, remarks) "
+                   + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        
+        try (Connection con = DBConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            
+            ps.setInt(1, donorId);
+            ps.setInt(2, staffId);
+            ps.setString(3, dateStr);
+            ps.setDouble(4, weight);
+            ps.setString(5, bp);
+            ps.setInt(6, pulseRate);
+            ps.setDouble(7, temp);
+            ps.setDouble(8, hb);
+            ps.setBoolean(9, eligible);
+            ps.setString(10, remarks);
+
+            if (ps.executeUpdate() > 0) {
+                JOptionPane.showMessageDialog(this, "Screening added successfully!");
+                loadData();
+                clearFields();
+            }
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, "Error: " + e.getMessage());
+        }
+    }//GEN-LAST:event_btnAddActionPerformed
+
+    private void btnClearActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnClearActionPerformed
+        clearFields();
+    }//GEN-LAST:event_btnClearActionPerformed
+
+    private void jTable1MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jTable1MouseClicked
+        int selectedRow = jTable1.getSelectedRow();
+        if (selectedRow == -1) return;
+
+        DefaultTableModel model = (DefaultTableModel) jTable1.getModel();
+        
+        txtScreeningId.setText(model.getValueAt(selectedRow, 0).toString());
+        
+        // Set Donor Combo
+        String donorName = model.getValueAt(selectedRow, 1).toString();
+        for (int i = 0; i < jComboBoxDonor.getItemCount(); i++) {
+            if (jComboBoxDonor.getItemAt(i).contains(donorName)) { jComboBoxDonor.setSelectedIndex(i); break; }
+        }
+        
+        // Set Staff Combo
+        String staffName = model.getValueAt(selectedRow, 2).toString();
+        for (int i = 0; i < jComboBoxStaff.getItemCount(); i++) {
+            if (jComboBoxStaff.getItemAt(i).contains(staffName)) { jComboBoxStaff.setSelectedIndex(i); break; }
+        }
+        
+        Object dateObj = model.getValueAt(selectedRow, 3);
+        txtDateOfScreening.setText(dateObj != null ? dateObj.toString() : "");
+        
+        Weight.setValue(model.getValueAt(selectedRow, 4));
+        txtBloodPressure.setText(model.getValueAt(selectedRow, 5).toString());
+        pulse.setValue(model.getValueAt(selectedRow, 6));
+        Temperature.setValue(model.getValueAt(selectedRow, 7));
+        Haemoglobin.setValue(model.getValueAt(selectedRow, 8));
+        
+        // Eligible (TINYINT 0 or 1)
+        Object eligibleObj = model.getValueAt(selectedRow, 9);
+        jCheckBoxEligible.setSelected(eligibleObj != null && (Boolean) eligibleObj || "1".equals(eligibleObj.toString()));
+    }//GEN-LAST:event_jTable1MouseClicked
+
+    private void btnUpdateActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnUpdateActionPerformed
+        String idStr = txtScreeningId.getText().trim();
+        if (idStr.equals("auto") || idStr.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Please select a screening from the table.");
+            return;
+        }
+
+        int screeningId = Integer.parseInt(idStr);
+        String dateStr = txtDateOfScreening.getText().trim();
+        String bp = txtBloodPressure.getText().trim();
+        String remarks = jTextArea1.getText().trim();
+        boolean eligible = jCheckBoxEligible.isSelected();
+
+        String donorItem = (String) jComboBoxDonor.getSelectedItem();
+        int donorId = Integer.parseInt(donorItem.split(" - ")[0]);
+        
+        String staffItem = (String) jComboBoxStaff.getSelectedItem();
+        int staffId = Integer.parseInt(staffItem.split(" - ")[0]);
+
+        double weight = ((Number) Weight.getValue()).doubleValue();
+        int pulseRate = ((Number) pulse.getValue()).intValue();
+        double temp = ((Number) Temperature.getValue()).doubleValue();
+        double hb = ((Number) Haemoglobin.getValue()).doubleValue();
+
+        String sql = "UPDATE health_screening SET donor_id=?, staff_id=?, screening_date=?, weight_kg=?, "
+                   + "blood_pressure=?, pulse_rate=?, temperature_c=?, hemoglobin_gdl=?, is_eligible=?, remarks=? "
+                   + "WHERE screening_id=?";
+        
+        try (Connection con = DBConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            
+            ps.setInt(1, donorId);
+            ps.setInt(2, staffId);
+            ps.setString(3, dateStr);
+            ps.setDouble(4, weight);
+            ps.setString(5, bp);
+            ps.setInt(6, pulseRate);
+            ps.setDouble(7, temp);
+            ps.setDouble(8, hb);
+            ps.setBoolean(9, eligible);
+            ps.setString(10, remarks);
+            ps.setInt(11, screeningId);
+
+            if (ps.executeUpdate() > 0) {
+                JOptionPane.showMessageDialog(this, "Screening updated successfully!");
+                loadData();
+                clearFields();
+            }
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, "Error: " + e.getMessage());
+        }
+    }//GEN-LAST:event_btnUpdateActionPerformed
+
+    private void btnDeleteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDeleteActionPerformed
+        String idStr = txtScreeningId.getText().trim();
+        if (idStr.equals("auto") || idStr.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Please select a screening.");
+            return;
+        }
+
+        int confirm = JOptionPane.showConfirmDialog(this, 
+                "Delete this screening record?", "Confirm", JOptionPane.YES_NO_OPTION);
+        if (confirm != JOptionPane.YES_OPTION) return;
+
+        int screeningId = Integer.parseInt(idStr);
+        String sql = "DELETE FROM health_screening WHERE screening_id = ?";
+        
+        try (Connection con = DBConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            
+            ps.setInt(1, screeningId);
+            
+            if (ps.executeUpdate() > 0) {
+                JOptionPane.showMessageDialog(this, "Screening deleted successfully!");
+                loadData();
+                clearFields();
+            }
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, "Cannot delete. Linked to donations. Error: " + e.getMessage());
+        }
+    }//GEN-LAST:event_btnDeleteActionPerformed
+
+    private void btnSearchActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSearchActionPerformed
+        String keyword = txtSearch.getText().trim();
+        if (keyword.isEmpty()) {
+            loadData();
+            return;
+        }
+
+        String sql = "SELECT h.screening_id, CONCAT(d.first_name, ' ', d.last_name) AS donor_name, "
+                   + "CONCAT(s.first_name, ' ', s.last_name) AS staff_name, h.screening_date, "
+                   + "h.weight_kg, h.blood_pressure, h.pulse_rate, h.temperature_c, h.hemoglobin_gdl, h.is_eligible "
+                   + "FROM health_screening h "
+                   + "JOIN donor d ON h.donor_id = d.donor_id "
+                   + "JOIN staff s ON h.staff_id = s.staff_id "
+                   + "WHERE d.first_name LIKE ? OR d.last_name LIKE ? OR s.first_name LIKE ?";
+        
+        String[] cols = {"ID", "Donor", "Staff", "Date", "Wt", "BP", "Pulse", "Temp", "Hb", "Eligible"};
+        DefaultTableModel model = new DefaultTableModel(cols, 0) {
+            @Override
+            public boolean isCellEditable(int row, int column) { return false; }
+        };
+
+        try (Connection con = DBConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            
+            ps.setString(1, "%" + keyword + "%");
+            ps.setString(2, "%" + keyword + "%");
+            ps.setString(3, "%" + keyword + "%");
+            
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                Vector<Object> row = new Vector<>();
+                for (int i = 1; i <= cols.length; i++) {
+                    row.add(rs.getObject(i));
+                }
+                model.addRow(row);
+            }
+            jTable1.setModel(model);
+            
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }//GEN-LAST:event_btnSearchActionPerformed
+
+    private void btnBackActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnBackActionPerformed
+        MainMenuFrame.Main();
+        this.dispose();
+    }//GEN-LAST:event_btnBackActionPerformed
+
     /**
      * @param args the command line arguments
      */
-    public static void main(String args[]) {
+    public static void Main() {
         /* Set the Nimbus look and feel */
         //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
         /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
@@ -320,6 +570,55 @@ public class HealthScreeningFrame extends javax.swing.JFrame {
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(() -> new HealthScreeningFrame().setVisible(true));
     }
+        private void loadData() {
+        // 1. Load Donors into the ComboBox
+        jComboBoxDonor.removeAllItems();
+        try (Connection con = DBConnection.getConnection();
+             Statement st = con.createStatement();
+             ResultSet rs = st.executeQuery("SELECT donor_id, CONCAT(first_name, ' ', last_name) AS full_name FROM donor")) {
+            while (rs.next()) {
+                jComboBoxDonor.addItem(rs.getInt("donor_id") + " - " + rs.getString("full_name"));
+            }
+        } catch (SQLException e) { e.printStackTrace(); }
+
+        // 2. Load Staff into the ComboBox (Filtering by Role 'Doctor' or 'Nurse')
+        jComboBoxStaff.removeAllItems();
+        try (Connection con = DBConnection.getConnection();
+             Statement st = con.createStatement();
+             ResultSet rs = st.executeQuery("SELECT staff_id, CONCAT(first_name, ' ', last_name) AS full_name FROM staff WHERE role IN ('Doctor', 'Nurse')")) {
+            while (rs.next()) {
+                jComboBoxStaff.addItem(rs.getInt("staff_id") + " - " + rs.getString("full_name"));
+            }
+        } catch (SQLException e) { e.printStackTrace(); }
+
+        // 3. Load Screenings into the Table
+        String sql = "SELECT h.screening_id, CONCAT(d.first_name, ' ', d.last_name) AS donor_name, "
+                   + "CONCAT(s.first_name, ' ', s.last_name) AS staff_name, h.screening_date, "
+                   + "h.weight_kg, h.blood_pressure, h.pulse_rate, h.temperature_c, h.hemoglobin_gdl, h.is_eligible "
+                   + "FROM health_screening h "
+                   + "JOIN donor d ON h.donor_id = d.donor_id "
+                   + "JOIN staff s ON h.staff_id = s.staff_id";
+        
+        String[] cols = {"ID", "Donor", "Staff", "Date", "Wt", "BP", "Pulse", "Temp", "Hb", "Eligible"};
+        DatabaseHelper.loadTableData(sql, jTable1, cols);
+    }
+
+    private void clearFields() {
+        txtScreeningId.setText("auto");
+        txtDateOfScreening.setText("yyyy-mm-dd hh:mm:ss");
+        txtBloodPressure.setText("");
+        Weight.setValue(70.0);
+        pulse.setValue(72);
+        Temperature.setValue(36.5);
+        Haemoglobin.setValue(14.0);
+        jCheckBoxEligible.setSelected(false);
+        jTextArea1.setText("");
+        
+        if (jComboBoxDonor.getItemCount() > 0) jComboBoxDonor.setSelectedIndex(0);
+        if (jComboBoxStaff.getItemCount() > 0) jComboBoxStaff.setSelectedIndex(0);
+        
+        txtSearch.setText("");
+    }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JSpinner Haemoglobin;
@@ -329,8 +628,8 @@ public class HealthScreeningFrame extends javax.swing.JFrame {
     private javax.swing.JButton btnBack;
     private javax.swing.JButton btnClear;
     private javax.swing.JButton btnDelete;
+    private javax.swing.JButton btnSearch;
     private javax.swing.JButton btnUpdate;
-    private javax.swing.JButton jButton1;
     private javax.swing.JCheckBox jCheckBoxEligible;
     private javax.swing.JComboBox<String> jComboBoxDonor;
     private javax.swing.JComboBox<String> jComboBoxStaff;

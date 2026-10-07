@@ -1,0 +1,35 @@
+# Blood Bank System: Reference
+
+## Test logins
+| Username   | Password  | Access |
+|------------|-----------|--------|
+| admin      | admin123  | Admin  |
+| labtech    | lab123    | Staff  |
+| nurse1     | nurse123  | Staff  |
+| reception1 | desk123   | Staff  |
+
+## Database
+- Schema: blood_bank_db (MySQL, JDBC port 3306)
+- Driver: mysql-connector-j-26.7.0.jar (add the .jar, not the folder)
+- DB password: kept in DBConnection.java only
+
+## Exact enum values
+- appointment.status: Scheduled, Completed, Cancelled, No-show
+- staff.role: Doctor, Nurse, Lab Technician, Receptionist, Manager
+- user_account.access_level: Admin, Staff
+- blood_unit.component: Whole Blood, Plasma, Platelets, Red Cells
+- blood_unit.status: Quarantine, Available, Reserved, Issued, Expired, Discarded
+- blood_request.urgency: Normal, Urgent, Emergency
+- blood_request.status: Pending, Approved, Fulfilled, Rejected
+- blood_test.test_name: HIV, Hepatitis B, Hepatitis C, Syphilis, Malaria
+- blood_test.result: Negative, Positive
+- gender (donor, patient): Male, Female, Other
+
+## Insert order
+blood_bank, blood_group, hospital → staff, donation_camp → user_account, donor, patient
+→ appointment, health_screening → donation → blood_unit → blood_test
+→ blood_request → blood_issue
+
+## Frames
+LoginFrame, MainMenuFrame, DonorFrame, HealthScreeningFrame, HospitalFrame,
+PatientFrame, StaffFrame, UserAccountFrame (package: blood_bank_and_blood_donation_management_system)
