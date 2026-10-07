@@ -4,6 +4,10 @@
  */
 package blood_bank_and_blood_donation_management_system;
 
+import java.sql.*;
+import javax.swing.JOptionPane;
+import java.util.Vector;
+import javax.swing.table.DefaultTableModel;
 /**
  *
  * @author LENOVO
@@ -17,6 +21,13 @@ public class BloodTestFrame extends javax.swing.JFrame {
      */
     public BloodTestFrame() {
         initComponents();
+        setTitle("Blood Bank System - Blood Test Results");
+        setLocationRelativeTo(null);
+        
+        setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
+
+        
+        loadData();
     }
 
     /**
@@ -28,6 +39,7 @@ public class BloodTestFrame extends javax.swing.JFrame {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
+        buttonGroup1 = new javax.swing.ButtonGroup();
         jPanel1 = new javax.swing.JPanel();
         jLabel1 = new javax.swing.JLabel();
         btnDelete = new javax.swing.JButton();
@@ -35,7 +47,7 @@ public class BloodTestFrame extends javax.swing.JFrame {
         btnAdd = new javax.swing.JButton();
         btnClear = new javax.swing.JButton();
         btnBack = new javax.swing.JButton();
-        jButton1 = new javax.swing.JButton();
+        btnSearch = new javax.swing.JButton();
         txtSearch = new javax.swing.JTextField();
         lblSearch = new javax.swing.JLabel();
         jScrollPane1 = new javax.swing.JScrollPane();
@@ -65,22 +77,28 @@ public class BloodTestFrame extends javax.swing.JFrame {
         btnDelete.setBackground(new java.awt.Color(255, 204, 204));
         btnDelete.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
         btnDelete.setText("Delete");
+        btnDelete.addActionListener(this::btnDeleteActionPerformed);
 
         btnUpdate.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
         btnUpdate.setText("Update");
+        btnUpdate.addActionListener(this::btnUpdateActionPerformed);
 
         btnAdd.setBackground(new java.awt.Color(204, 255, 204));
         btnAdd.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
         btnAdd.setText("Add");
+        btnAdd.addActionListener(this::btnAddActionPerformed);
 
         btnClear.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
         btnClear.setText("Clear");
+        btnClear.addActionListener(this::btnClearActionPerformed);
 
         btnBack.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
         btnBack.setText("Back to Menu");
+        btnBack.addActionListener(this::btnBackActionPerformed);
 
-        jButton1.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
-        jButton1.setText("Search");
+        btnSearch.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
+        btnSearch.setText("Search");
+        btnSearch.addActionListener(this::btnSearchActionPerformed);
 
         lblSearch.setText("Search:");
 
@@ -96,6 +114,11 @@ public class BloodTestFrame extends javax.swing.JFrame {
                 "ID", "Unit", "Staff", "Test", "Result", "Date"
             }
         ));
+        jTable1.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                jTable1MouseClicked(evt);
+            }
+        });
         jScrollPane1.setViewportView(jTable1);
 
         jPanel2.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(204, 204, 204)));
@@ -111,8 +134,6 @@ public class BloodTestFrame extends javax.swing.JFrame {
         txtTestId.setForeground(new java.awt.Color(102, 102, 102));
         txtTestId.setText("auto");
 
-        txtDate.setFont(new java.awt.Font("Segoe UI", 0, 8)); // NOI18N
-        txtDate.setForeground(new java.awt.Color(204, 204, 204));
         txtDate.setText("yyyy-mm-dd");
 
         lblDate.setText("Test Date:");
@@ -129,10 +150,11 @@ public class BloodTestFrame extends javax.swing.JFrame {
         lblTestName.setText("Test Name:");
 
         jComboBoxTestName.setForeground(new java.awt.Color(204, 204, 204));
-        jComboBoxTestName.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
 
+        buttonGroup1.add(rdbtnNegative);
         rdbtnNegative.setText("Negative");
 
+        buttonGroup1.add(rdbtnPositive);
         rdbtnPositive.setText("Positive");
 
         javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
@@ -163,7 +185,7 @@ public class BloodTestFrame extends javax.swing.JFrame {
                     .addComponent(lblDate))
                 .addGap(62, 62, 62)
                 .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(txtDate)
+                    .addComponent(txtDate, javax.swing.GroupLayout.DEFAULT_SIZE, 247, Short.MAX_VALUE)
                     .addComponent(jComboBoxTestName, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addComponent(jComboBoxBloodUnit, 0, 247, Short.MAX_VALUE))
                 .addContainerGap())
@@ -176,14 +198,13 @@ public class BloodTestFrame extends javax.swing.JFrame {
                         .addGap(14, 14, 14)
                         .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                             .addComponent(lblTestID)
-                            .addComponent(txtTestId, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE))
-                        .addGap(24, 24, 24))
+                            .addComponent(txtTestId, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)))
                     .addGroup(jPanel2Layout.createSequentialGroup()
                         .addGap(21, 21, 21)
                         .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                             .addComponent(lblBloodUnit)
                             .addComponent(jComboBoxBloodUnit, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE))))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 17, Short.MAX_VALUE)
                 .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jComboBoxTestName, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(lblTestName)
@@ -233,7 +254,7 @@ public class BloodTestFrame extends javax.swing.JFrame {
                         .addGap(18, 18, 18)
                         .addComponent(txtSearch, javax.swing.GroupLayout.PREFERRED_SIZE, 207, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(jButton1)))
+                        .addComponent(btnSearch)))
                 .addGap(0, 0, Short.MAX_VALUE))
         );
         jPanel1Layout.setVerticalGroup(
@@ -255,7 +276,7 @@ public class BloodTestFrame extends javax.swing.JFrame {
                     .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                         .addComponent(lblSearch)
                         .addComponent(txtSearch, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addComponent(jButton1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                    .addComponent(btnSearch, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 125, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap(21, Short.MAX_VALUE))
@@ -279,10 +300,225 @@ public class BloodTestFrame extends javax.swing.JFrame {
         // TODO add your handling code here:
     }//GEN-LAST:event_jComboBoxStaffActionPerformed
 
+    private void btnAddActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnAddActionPerformed
+        if (jComboBoxBloodUnit.getSelectedItem() == null || jComboBoxStaff.getSelectedItem() == null) {
+            JOptionPane.showMessageDialog(this, "Please ensure Blood Units and Staff (Lab/Doctor) exist.");
+            return;
+        }
+
+        String dateStr = txtDate.getText().trim();
+        String testName = (String) jComboBoxTestName.getSelectedItem();
+        
+        // Get Result from Radio Buttons
+        String result = "";
+        if (rdbtnPositive.isSelected()) result = "Positive";
+        else if (rdbtnNegative.isSelected()) result = "Negative";
+        
+        if (result.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Please select a Test Result (Positive or Negative).");
+            return;
+        }
+
+        int unitId = Integer.parseInt(((String) jComboBoxBloodUnit.getSelectedItem()).split(" - ")[0]);
+        int staffId = Integer.parseInt(((String) jComboBoxStaff.getSelectedItem()).split(" - ")[0]);
+
+        if (dateStr.equals("yyyy-mm-dd hh:mm:ss") || dateStr.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Please enter a valid Test Date (yyyy-mm-dd hh:mm:ss).");
+            return;
+        }
+
+        String sql = "INSERT INTO blood_test (unit_id, staff_id, test_name, result, test_date) VALUES (?, ?, ?, ?, ?)";
+        
+        try (Connection con = DBConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            
+            ps.setInt(1, unitId);
+            ps.setInt(2, staffId);
+            ps.setString(3, testName);
+            ps.setString(4, result);
+            ps.setString(5, dateStr);
+
+            if (ps.executeUpdate() > 0) {
+                JOptionPane.showMessageDialog(this, "Test result recorded successfully!");
+                loadData();
+                clearFields();
+            }
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, "Error: " + e.getMessage());
+        }
+    }//GEN-LAST:event_btnAddActionPerformed
+
+    private void btnClearActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnClearActionPerformed
+         clearFields();
+    }//GEN-LAST:event_btnClearActionPerformed
+
+    private void jTable1MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jTable1MouseClicked
+        int selectedRow = jTable1.getSelectedRow();
+        if (selectedRow == -1) return;
+
+        DefaultTableModel model = (DefaultTableModel) jTable1.getModel();
+        
+        txtTestId.setText(model.getValueAt(selectedRow, 0).toString());
+        
+        // Match Unit (Table shows Unit ID, Combo shows "ID - Group (Bank)")
+        String unitIdStr = model.getValueAt(selectedRow, 1).toString();
+        for (int i = 0; i < jComboBoxBloodUnit.getItemCount(); i++) {
+            if (jComboBoxBloodUnit.getItemAt(i).startsWith(unitIdStr + " - ")) {
+                jComboBoxBloodUnit.setSelectedIndex(i);
+                break;
+            }
+        }
+        
+        // Match Staff
+        setComboSelection(jComboBoxStaff, model.getValueAt(selectedRow, 2).toString());
+        
+        // Match Test Name
+        jComboBoxTestName.setSelectedItem(model.getValueAt(selectedRow, 3).toString());
+        
+        // Set Result Radio
+        String result = model.getValueAt(selectedRow, 4).toString();
+        if (result.equals("Positive")) rdbtnPositive.setSelected(true);
+        else rdbtnNegative.setSelected(true);
+        
+        Object dateObj = model.getValueAt(selectedRow, 5);
+        txtDate.setText(dateObj != null ? dateObj.toString() : "");
+    }                                    
+
+    // Helper method
+    private void setComboSelection(javax.swing.JComboBox<String> comboBox, String keyword) {
+        for (int i = 0; i < comboBox.getItemCount(); i++) {
+            if (comboBox.getItemAt(i).contains(keyword)) {
+                comboBox.setSelectedIndex(i);
+                return;
+            }
+        }
+    }//GEN-LAST:event_jTable1MouseClicked
+
+    private void btnUpdateActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnUpdateActionPerformed
+        String idStr = txtTestId.getText().trim();
+        if (idStr.equals("auto") || idStr.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Please select a test from the table.");
+            return;
+        }
+
+        int testId = Integer.parseInt(idStr);
+        String dateStr = txtDate.getText().trim();
+        String testName = (String) jComboBoxTestName.getSelectedItem();
+        
+        String result = "";
+        if (rdbtnPositive.isSelected()) result = "Positive";
+        else if (rdbtnNegative.isSelected()) result = "Negative";
+        
+        if (result.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Please select a Test Result.");
+            return;
+        }
+
+        int unitId = Integer.parseInt(((String) jComboBoxBloodUnit.getSelectedItem()).split(" - ")[0]);
+        int staffId = Integer.parseInt(((String) jComboBoxStaff.getSelectedItem()).split(" - ")[0]);
+
+        String sql = "UPDATE blood_test SET unit_id=?, staff_id=?, test_name=?, result=?, test_date=? WHERE test_id=?";
+        
+        try (Connection con = DBConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            
+            ps.setInt(1, unitId);
+            ps.setInt(2, staffId);
+            ps.setString(3, testName);
+            ps.setString(4, result);
+            ps.setString(5, dateStr);
+            ps.setInt(6, testId);
+
+            if (ps.executeUpdate() > 0) {
+                JOptionPane.showMessageDialog(this, "Test updated successfully!");
+                loadData();
+                clearFields();
+            }
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, "Error: " + e.getMessage());
+        }
+    }//GEN-LAST:event_btnUpdateActionPerformed
+
+    private void btnDeleteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDeleteActionPerformed
+        String idStr = txtTestId.getText().trim();
+        if (idStr.equals("auto") || idStr.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Please select a test.");
+            return;
+        }
+
+        int confirm = JOptionPane.showConfirmDialog(this, 
+                "Delete this test record?", "Confirm", JOptionPane.YES_NO_OPTION);
+        if (confirm != JOptionPane.YES_OPTION) return;
+
+        int testId = Integer.parseInt(idStr);
+        String sql = "DELETE FROM blood_test WHERE test_id = ?";
+        
+        try (Connection con = DBConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            
+            ps.setInt(1, testId);
+            
+            if (ps.executeUpdate() > 0) {
+                JOptionPane.showMessageDialog(this, "Test deleted successfully!");
+                loadData();
+                clearFields();
+            }
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, "Error deleting: " + e.getMessage());
+        }
+    }//GEN-LAST:event_btnDeleteActionPerformed
+
+    private void btnSearchActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSearchActionPerformed
+        String keyword = txtSearch.getText().trim();
+        if (keyword.isEmpty()) {
+            loadData();
+            return;
+        }
+
+        String sql = "SELECT t.test_id, u.unit_id, CONCAT(s.first_name, ' ', s.last_name) AS staff_name, "
+                   + "t.test_name, t.result, t.test_date "
+                   + "FROM blood_test t "
+                   + "JOIN blood_unit u ON t.unit_id = u.unit_id "
+                   + "JOIN staff s ON t.staff_id = s.staff_id "
+                   + "WHERE t.test_name LIKE ? OR t.result LIKE ? OR s.first_name LIKE ?";
+        
+        String[] cols = {"ID", "Unit", "Staff", "Test", "Result", "Date"};
+        DefaultTableModel model = new DefaultTableModel(cols, 0) {
+            @Override
+            public boolean isCellEditable(int row, int column) { return false; }
+        };
+
+        try (Connection con = DBConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            
+            ps.setString(1, "%" + keyword + "%");
+            ps.setString(2, "%" + keyword + "%");
+            ps.setString(3, "%" + keyword + "%");
+            
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                Vector<Object> row = new Vector<>();
+                for (int i = 1; i <= cols.length; i++) {
+                    row.add(rs.getObject(i));
+                }
+                model.addRow(row);
+            }
+            jTable1.setModel(model);
+            
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }//GEN-LAST:event_btnSearchActionPerformed
+
+    private void btnBackActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnBackActionPerformed
+        MainMenuFrame.Main();
+        this.dispose();
+    }//GEN-LAST:event_btnBackActionPerformed
+
     /**
      * @param args the command line arguments
      */
-    public static void main(String args[]) {
+    public static void Main() {
         /* Set the Nimbus look and feel */
         //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
         /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
@@ -303,14 +539,73 @@ public class BloodTestFrame extends javax.swing.JFrame {
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(() -> new BloodTestFrame().setVisible(true));
     }
+        private void loadData() {
+        // 1. Load Blood Units into ComboBox (Show "ID - Group (Bank)")
+        jComboBoxBloodUnit.removeAllItems();
+        try (Connection con = DBConnection.getConnection();
+             Statement st = con.createStatement();
+             ResultSet rs = st.executeQuery(
+                 "SELECT u.unit_id, bg.group_name, b.bank_name " +
+                 "FROM blood_unit u " +
+                 "JOIN blood_group bg ON u.blood_group_id = bg.blood_group_id " +
+                 "JOIN blood_bank b ON u.bank_id = b.bank_id")) {
+            while (rs.next()) {
+                jComboBoxBloodUnit.addItem(rs.getInt("unit_id") + " - " 
+                    + rs.getString("group_name") + " (" + rs.getString("bank_name") + ")");
+            }
+        } catch (SQLException e) { e.printStackTrace(); }
+
+        // 2. Load Staff (Lab Technicians and Doctors)
+        jComboBoxStaff.removeAllItems();
+        try (Connection con = DBConnection.getConnection();
+             Statement st = con.createStatement();
+             ResultSet rs = st.executeQuery(
+                 "SELECT staff_id, CONCAT(first_name, ' ', last_name) AS full_name " +
+                 "FROM staff WHERE role IN ('Lab Technician', 'Doctor')")) {
+            while (rs.next()) {
+                jComboBoxStaff.addItem(rs.getInt("staff_id") + " - " + rs.getString("full_name"));
+            }
+        } catch (SQLException e) { e.printStackTrace(); }
+
+        // 3. Load Test Names (fixed ENUM values)
+        jComboBoxTestName.removeAllItems();
+        jComboBoxTestName.addItem("HIV");
+        jComboBoxTestName.addItem("Hepatitis B");
+        jComboBoxTestName.addItem("Hepatitis C");
+        jComboBoxTestName.addItem("Syphilis");
+        jComboBoxTestName.addItem("Malaria");
+
+        // 4. Load Tests into the Table
+        String sql = "SELECT t.test_id, u.unit_id, CONCAT(s.first_name, ' ', s.last_name) AS staff_name, "
+                   + "t.test_name, t.result, t.test_date "
+                   + "FROM blood_test t "
+                   + "JOIN blood_unit u ON t.unit_id = u.unit_id "
+                   + "JOIN staff s ON t.staff_id = s.staff_id";
+        
+        String[] cols = {"ID", "Unit", "Staff", "Test", "Result", "Date"};
+        DatabaseHelper.loadTableData(sql, jTable1, cols);
+    }
+
+    private void clearFields() {
+        txtTestId.setText("auto");
+        txtDate.setText("yyyy-mm-dd hh:mm:ss");
+        buttonGroup1.clearSelection(); // Clear Radio buttons
+        
+        if (jComboBoxBloodUnit.getItemCount() > 0) jComboBoxBloodUnit.setSelectedIndex(0);
+        if (jComboBoxStaff.getItemCount() > 0) jComboBoxStaff.setSelectedIndex(0);
+        if (jComboBoxTestName.getItemCount() > 0) jComboBoxTestName.setSelectedIndex(0);
+        
+        txtSearch.setText("");
+    }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnAdd;
     private javax.swing.JButton btnBack;
     private javax.swing.JButton btnClear;
     private javax.swing.JButton btnDelete;
+    private javax.swing.JButton btnSearch;
     private javax.swing.JButton btnUpdate;
-    private javax.swing.JButton jButton1;
+    private javax.swing.ButtonGroup buttonGroup1;
     private javax.swing.JComboBox<String> jComboBoxBloodUnit;
     private javax.swing.JComboBox<String> jComboBoxStaff;
     private javax.swing.JComboBox<String> jComboBoxTestName;
