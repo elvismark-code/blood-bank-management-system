@@ -4,6 +4,10 @@
  */
 package blood_bank_and_blood_donation_management_system;
 
+import java.sql.*;
+import javax.swing.JOptionPane;
+import java.util.Vector;
+import javax.swing.table.DefaultTableModel;
 /**
  *
  * @author LENOVO
@@ -17,6 +21,11 @@ public class DonationCampFrame extends javax.swing.JFrame {
      */
     public DonationCampFrame() {
         initComponents();
+        
+        setTitle("Blood Bank System - Donation Camp Management");
+        setLocationRelativeTo(null);
+        setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
+        loadData();
     }
 
     /**
@@ -35,7 +44,7 @@ public class DonationCampFrame extends javax.swing.JFrame {
         btnAdd = new javax.swing.JButton();
         btnClear = new javax.swing.JButton();
         btnBack = new javax.swing.JButton();
-        jButton1 = new javax.swing.JButton();
+        btnSearch = new javax.swing.JButton();
         txtSearch = new javax.swing.JTextField();
         lblSearch = new javax.swing.JLabel();
         jScrollPane1 = new javax.swing.JScrollPane();
@@ -64,22 +73,28 @@ public class DonationCampFrame extends javax.swing.JFrame {
         btnDelete.setBackground(new java.awt.Color(255, 204, 204));
         btnDelete.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
         btnDelete.setText("Delete");
+        btnDelete.addActionListener(this::btnDeleteActionPerformed);
 
         btnUpdate.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
         btnUpdate.setText("Update");
+        btnUpdate.addActionListener(this::btnUpdateActionPerformed);
 
         btnAdd.setBackground(new java.awt.Color(204, 255, 204));
         btnAdd.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
         btnAdd.setText("Add");
+        btnAdd.addActionListener(this::btnAddActionPerformed);
 
         btnClear.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
         btnClear.setText("Clear");
+        btnClear.addActionListener(this::btnClearActionPerformed);
 
         btnBack.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
         btnBack.setText("Back to Menu");
+        btnBack.addActionListener(this::btnBackActionPerformed);
 
-        jButton1.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
-        jButton1.setText("Search");
+        btnSearch.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
+        btnSearch.setText("Search");
+        btnSearch.addActionListener(this::btnSearchActionPerformed);
 
         lblSearch.setText("Search:");
 
@@ -95,6 +110,11 @@ public class DonationCampFrame extends javax.swing.JFrame {
                 "ID", "Bank", "Camp name", "Venue", "Date", "Organiser"
             }
         ));
+        jTable1.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                jTable1MouseClicked(evt);
+            }
+        });
         jScrollPane1.setViewportView(jTable1);
 
         jPanel2.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(204, 204, 204)));
@@ -110,8 +130,7 @@ public class DonationCampFrame extends javax.swing.JFrame {
         txtCampID.setForeground(new java.awt.Color(102, 102, 102));
         txtCampID.setText("auto");
 
-        txtOrganiser.setFont(new java.awt.Font("Segoe UI", 0, 8)); // NOI18N
-        txtOrganiser.setForeground(new java.awt.Color(204, 204, 204));
+        txtOrganiser.setForeground(new java.awt.Color(51, 51, 0));
 
         lblOrganiser.setText("Organiser:");
 
@@ -122,8 +141,6 @@ public class DonationCampFrame extends javax.swing.JFrame {
 
         lblcampDate.setText("Camp date:");
 
-        txtDate.setFont(new java.awt.Font("Segoe UI", 0, 8)); // NOI18N
-        txtDate.setForeground(new java.awt.Color(204, 204, 204));
         txtDate.setText("yyyy-mm-dd");
 
         javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
@@ -202,7 +219,7 @@ public class DonationCampFrame extends javax.swing.JFrame {
                 .addGap(18, 18, 18)
                 .addComponent(txtSearch, javax.swing.GroupLayout.PREFERRED_SIZE, 207, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(jButton1)
+                .addComponent(btnSearch)
                 .addGap(0, 0, Short.MAX_VALUE))
             .addGroup(jPanel1Layout.createSequentialGroup()
                 .addGap(40, 40, 40)
@@ -248,7 +265,7 @@ public class DonationCampFrame extends javax.swing.JFrame {
                     .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                         .addComponent(lblSearch)
                         .addComponent(txtSearch, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addComponent(jButton1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                    .addComponent(btnSearch, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 125, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
@@ -268,10 +285,193 @@ public class DonationCampFrame extends javax.swing.JFrame {
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
+    private void btnAddActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnAddActionPerformed
+        if (jComboBoxBank.getSelectedItem() == null) {
+            JOptionPane.showMessageDialog(this, "Please ensure you have at least one Blood Bank in the system.");
+            return;
+        }
+
+        String campName = txtCampname.getText().trim();
+        String venue = txtVenue.getText().trim();
+        String dateStr = txtDate.getText().trim();
+        String organizer = txtOrganiser.getText().trim();
+        
+        String bankItem = (String) jComboBoxBank.getSelectedItem();
+        int bankId = Integer.parseInt(bankItem.split(" - ")[0]);
+
+        if (campName.isEmpty() || venue.isEmpty() || dateStr.equals("yyyy-mm-dd")) {
+            JOptionPane.showMessageDialog(this, "Camp Name, Venue, and Date are required.");
+            return;
+        }
+
+        String sql = "INSERT INTO donation_camp (bank_id, camp_name, venue, camp_date, organizer) VALUES (?, ?, ?, ?, ?)";
+        
+        try (Connection con = DBConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            
+            ps.setInt(1, bankId);
+            ps.setString(2, campName);
+            ps.setString(3, venue);
+            ps.setString(4, dateStr);
+            ps.setString(5, organizer);
+
+            if (ps.executeUpdate() > 0) {
+                JOptionPane.showMessageDialog(this, "Donation Camp added successfully!");
+                loadData();
+                clearFields();
+            }
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, "Error: " + e.getMessage());
+        }
+    }//GEN-LAST:event_btnAddActionPerformed
+
+    private void btnClearActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnClearActionPerformed
+        clearFields();
+    }//GEN-LAST:event_btnClearActionPerformed
+
+    private void jTable1MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jTable1MouseClicked
+        int selectedRow = jTable1.getSelectedRow();
+        if (selectedRow == -1) return;
+
+        DefaultTableModel model = (DefaultTableModel) jTable1.getModel();
+        
+        txtCampID.setText(model.getValueAt(selectedRow, 0).toString());
+        
+        // Set Bank Combo
+        String bankName = model.getValueAt(selectedRow, 1).toString();
+        for (int i = 0; i < jComboBoxBank.getItemCount(); i++) {
+            if (jComboBoxBank.getItemAt(i).contains(bankName)) {
+                jComboBoxBank.setSelectedIndex(i);
+                break;
+            }
+        }
+        
+        txtCampname.setText(model.getValueAt(selectedRow, 2).toString());
+        txtVenue.setText(model.getValueAt(selectedRow, 3).toString());
+        
+        Object dateObj = model.getValueAt(selectedRow, 4);
+        txtDate.setText(dateObj != null ? dateObj.toString() : "");
+        
+        Object orgObj = model.getValueAt(selectedRow, 5);
+        txtOrganiser.setText(orgObj != null ? orgObj.toString() : "");
+    }//GEN-LAST:event_jTable1MouseClicked
+
+    private void btnUpdateActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnUpdateActionPerformed
+        String idStr = txtCampID.getText().trim();
+        if (idStr.equals("auto") || idStr.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Please select a camp from the table.");
+            return;
+        }
+
+        int campId = Integer.parseInt(idStr);
+        String campName = txtCampname.getText().trim();
+        String venue = txtVenue.getText().trim();
+        String dateStr = txtDate.getText().trim();
+        String organizer = txtOrganiser.getText().trim();
+        
+        String bankItem = (String) jComboBoxBank.getSelectedItem();
+        int bankId = Integer.parseInt(bankItem.split(" - ")[0]);
+
+        String sql = "UPDATE donation_camp SET bank_id=?, camp_name=?, venue=?, camp_date=?, organizer=? WHERE camp_id=?";
+        
+        try (Connection con = DBConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            
+            ps.setInt(1, bankId);
+            ps.setString(2, campName);
+            ps.setString(3, venue);
+            ps.setString(4, dateStr);
+            ps.setString(5, organizer);
+            ps.setInt(6, campId);
+
+            if (ps.executeUpdate() > 0) {
+                JOptionPane.showMessageDialog(this, "Camp updated successfully!");
+                loadData();
+                clearFields();
+            }
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, "Error: " + e.getMessage());
+        }
+    }//GEN-LAST:event_btnUpdateActionPerformed
+
+    private void btnDeleteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDeleteActionPerformed
+        String idStr = txtCampID.getText().trim();
+        if (idStr.equals("auto") || idStr.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Please select a camp.");
+            return;
+        }
+
+        int confirm = JOptionPane.showConfirmDialog(this, 
+                "Delete this Donation Camp?", "Confirm", JOptionPane.YES_NO_OPTION);
+        if (confirm != JOptionPane.YES_OPTION) return;
+
+        int campId = Integer.parseInt(idStr);
+        String sql = "DELETE FROM donation_camp WHERE camp_id = ?";
+        
+        try (Connection con = DBConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            
+            ps.setInt(1, campId);
+            
+            if (ps.executeUpdate() > 0) {
+                JOptionPane.showMessageDialog(this, "Camp deleted successfully!");
+                loadData();
+                clearFields();
+            }
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, "Cannot delete. Linked to donations. Error: " + e.getMessage());
+        }
+    }//GEN-LAST:event_btnDeleteActionPerformed
+
+    private void btnSearchActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSearchActionPerformed
+        String keyword = txtSearch.getText().trim();
+        if (keyword.isEmpty()) {
+            loadData();
+            return;
+        }
+
+        String sql = "SELECT c.camp_id, b.bank_name, c.camp_name, c.venue, c.camp_date, c.organizer "
+                   + "FROM donation_camp c "
+                   + "JOIN blood_bank b ON c.bank_id = b.bank_id "
+                   + "WHERE c.camp_name LIKE ? OR c.venue LIKE ? OR c.organizer LIKE ?";
+        
+        String[] cols = {"ID", "Bank", "Camp Name", "Venue", "Date", "Organizer"};
+        DefaultTableModel model = new DefaultTableModel(cols, 0) {
+            @Override
+            public boolean isCellEditable(int row, int column) { return false; }
+        };
+
+        try (Connection con = DBConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            
+            ps.setString(1, "%" + keyword + "%");
+            ps.setString(2, "%" + keyword + "%");
+            ps.setString(3, "%" + keyword + "%");
+            
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                Vector<Object> row = new Vector<>();
+                for (int i = 1; i <= cols.length; i++) {
+                    row.add(rs.getObject(i));
+                }
+                model.addRow(row);
+            }
+            jTable1.setModel(model);
+            
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }//GEN-LAST:event_btnSearchActionPerformed
+
+    private void btnBackActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnBackActionPerformed
+        MainMenuFrame.Main();
+        this.dispose();
+    }//GEN-LAST:event_btnBackActionPerformed
+
     /**
      * @param args the command line arguments
      */
-    public static void main(String args[]) {
+    public static void Main() {
         /* Set the Nimbus look and feel */
         //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
         /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
@@ -292,14 +492,45 @@ public class DonationCampFrame extends javax.swing.JFrame {
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(() -> new DonationCampFrame().setVisible(true));
     }
+        private void loadData() {
+        // 1. Load Banks into the ComboBox
+        jComboBoxBank.removeAllItems();
+        try (Connection con = DBConnection.getConnection();
+             Statement st = con.createStatement();
+             ResultSet rs = st.executeQuery("SELECT bank_id, bank_name FROM blood_bank")) {
+            while (rs.next()) {
+                jComboBoxBank.addItem(rs.getInt("bank_id") + " - " + rs.getString("bank_name"));
+            }
+        } catch (SQLException e) { e.printStackTrace(); }
+
+        // 2. Load Camps into the Table
+        String sql = "SELECT c.camp_id, b.bank_name, c.camp_name, c.venue, c.camp_date, c.organizer "
+                   + "FROM donation_camp c "
+                   + "JOIN blood_bank b ON c.bank_id = b.bank_id";
+        
+        String[] cols = {"ID", "Bank", "Camp Name", "Venue", "Date", "Organizer"};
+        DatabaseHelper.loadTableData(sql, jTable1, cols);
+    }
+
+    private void clearFields() {
+        txtCampID.setText("auto");
+        txtCampname.setText("");
+        txtVenue.setText("");
+        txtOrganiser.setText("");
+        txtDate.setText("yyyy-mm-dd");
+        
+        if (jComboBoxBank.getItemCount() > 0) jComboBoxBank.setSelectedIndex(0);
+        
+        txtSearch.setText("");
+    }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnAdd;
     private javax.swing.JButton btnBack;
     private javax.swing.JButton btnClear;
     private javax.swing.JButton btnDelete;
+    private javax.swing.JButton btnSearch;
     private javax.swing.JButton btnUpdate;
-    private javax.swing.JButton jButton1;
     private javax.swing.JComboBox<String> jComboBoxBank;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JPanel jPanel1;

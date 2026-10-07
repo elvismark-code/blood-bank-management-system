@@ -4,6 +4,10 @@
  */
 package blood_bank_and_blood_donation_management_system;
 
+import java.sql.*;
+import javax.swing.JOptionPane;
+import java.util.Vector;
+import javax.swing.table.DefaultTableModel;
 /**
  *
  * @author LENOVO
@@ -17,6 +21,13 @@ public class AppointmentFrame extends javax.swing.JFrame {
      */
     public AppointmentFrame() {
         initComponents();
+        setTitle("Blood Bank System - Appointment Management");
+        setLocationRelativeTo(null);
+        
+        setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
+
+        
+        loadData();
     }
 
     /**
@@ -35,7 +46,7 @@ public class AppointmentFrame extends javax.swing.JFrame {
         btnAdd = new javax.swing.JButton();
         btnClear = new javax.swing.JButton();
         btnBack = new javax.swing.JButton();
-        jButton1 = new javax.swing.JButton();
+        btnSearch = new javax.swing.JButton();
         txtSearch = new javax.swing.JTextField();
         lblSearch = new javax.swing.JLabel();
         jScrollPane1 = new javax.swing.JScrollPane();
@@ -62,22 +73,28 @@ public class AppointmentFrame extends javax.swing.JFrame {
         btnDelete.setBackground(new java.awt.Color(255, 204, 204));
         btnDelete.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
         btnDelete.setText("Delete");
+        btnDelete.addActionListener(this::btnDeleteActionPerformed);
 
         btnUpdate.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
         btnUpdate.setText("Update");
+        btnUpdate.addActionListener(this::btnUpdateActionPerformed);
 
         btnAdd.setBackground(new java.awt.Color(204, 255, 204));
         btnAdd.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
         btnAdd.setText("Add");
+        btnAdd.addActionListener(this::btnAddActionPerformed);
 
         btnClear.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
         btnClear.setText("Clear");
+        btnClear.addActionListener(this::btnClearActionPerformed);
 
         btnBack.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
         btnBack.setText("Back to Menu");
+        btnBack.addActionListener(this::btnBackActionPerformed);
 
-        jButton1.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
-        jButton1.setText("Search");
+        btnSearch.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
+        btnSearch.setText("Search");
+        btnSearch.addActionListener(this::btnSearchActionPerformed);
 
         lblSearch.setText("Search:");
 
@@ -93,6 +110,11 @@ public class AppointmentFrame extends javax.swing.JFrame {
                 "ID", "Donor", "Bank", "Date and Time", "Status"
             }
         ));
+        jTable1.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                jTable1MouseClicked(evt);
+            }
+        });
         jScrollPane1.setViewportView(jTable1);
 
         jPanel2.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(204, 204, 204)));
@@ -109,8 +131,7 @@ public class AppointmentFrame extends javax.swing.JFrame {
         txtAppointmentId.setText("auto");
 
         txtDate.setFont(new java.awt.Font("Segoe UI", 0, 8)); // NOI18N
-        txtDate.setForeground(new java.awt.Color(204, 204, 204));
-        txtDate.setText("yyyy-mm-dd");
+        txtDate.setText("yyyy-mm-dd  hh:mm:ss");
 
         lblDate.setText("Appointment Date:");
 
@@ -124,7 +145,6 @@ public class AppointmentFrame extends javax.swing.JFrame {
         jComboBoxDonor.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
 
         jComboBoxStatus.setForeground(new java.awt.Color(204, 204, 204));
-        jComboBoxStatus.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
         jComboBoxStatus.addActionListener(this::jComboBoxStatusActionPerformed);
 
         javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
@@ -223,7 +243,7 @@ public class AppointmentFrame extends javax.swing.JFrame {
                         .addGap(18, 18, 18)
                         .addComponent(txtSearch, javax.swing.GroupLayout.PREFERRED_SIZE, 207, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(jButton1)))
+                        .addComponent(btnSearch)))
                 .addGap(0, 0, Short.MAX_VALUE))
         );
         jPanel1Layout.setVerticalGroup(
@@ -241,11 +261,10 @@ public class AppointmentFrame extends javax.swing.JFrame {
                     .addComponent(btnClear, javax.swing.GroupLayout.PREFERRED_SIZE, 33, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(btnBack, javax.swing.GroupLayout.PREFERRED_SIZE, 33, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addGap(18, 18, 18)
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                    .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                        .addComponent(lblSearch)
-                        .addComponent(txtSearch, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addComponent(jButton1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(lblSearch)
+                    .addComponent(txtSearch, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(btnSearch, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 125, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
@@ -273,10 +292,201 @@ public class AppointmentFrame extends javax.swing.JFrame {
         // TODO add your handling code here:
     }//GEN-LAST:event_jComboBoxStatusActionPerformed
 
+    private void btnAddActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnAddActionPerformed
+        if (jComboBoxDonor.getSelectedItem() == null || jComboBoxBank.getSelectedItem() == null) {
+            JOptionPane.showMessageDialog(this, "Please make sure you have Donors and Banks in the system.");
+            return;
+        }
+
+        String dateStr = txtDate.getText().trim();
+        String status = (String) jComboBoxStatus.getSelectedItem();
+        
+        // Extract IDs from ComboBox (format "ID - Name")
+        String donorItem = (String) jComboBoxDonor.getSelectedItem();
+        int donorId = Integer.parseInt(donorItem.split(" - ")[0]);
+        
+        String bankItem = (String) jComboBoxBank.getSelectedItem();
+        int bankId = Integer.parseInt(bankItem.split(" - ")[0]);
+
+        if (dateStr.equals("yyyy-mm-dd hh:mm:ss") || dateStr.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Please enter a valid Date and Time (yyyy-mm-dd hh:mm:ss).");
+            return;
+        }
+
+        String sql = "INSERT INTO appointment (donor_id, bank_id, appointment_date, status) VALUES (?, ?, ?, ?)";
+        
+        try (Connection con = DBConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            
+            ps.setInt(1, donorId);
+            ps.setInt(2, bankId);
+            ps.setString(3, dateStr);
+            ps.setString(4, status);
+
+            if (ps.executeUpdate() > 0) {
+                JOptionPane.showMessageDialog(this, "Appointment added successfully!");
+                loadData();
+                clearFields();
+            }
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, "Error: " + e.getMessage());
+        }
+    }//GEN-LAST:event_btnAddActionPerformed
+
+    private void btnClearActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnClearActionPerformed
+        clearFields();
+    }//GEN-LAST:event_btnClearActionPerformed
+
+    private void jTable1MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jTable1MouseClicked
+        int selectedRow = jTable1.getSelectedRow();
+        if (selectedRow == -1) return;
+
+        DefaultTableModel model = (DefaultTableModel) jTable1.getModel();
+        
+        txtAppointmentId.setText(model.getValueAt(selectedRow, 0).toString());
+        
+        // We need to find the full ComboBox item that contains the donor name
+        String donorName = model.getValueAt(selectedRow, 1).toString();
+        for (int i = 0; i < jComboBoxDonor.getItemCount(); i++) {
+            if (jComboBoxDonor.getItemAt(i).contains(donorName)) {
+                jComboBoxDonor.setSelectedIndex(i);
+                break;
+            }
+        }
+        
+        // Do the same for Bank
+        String bankName = model.getValueAt(selectedRow, 2).toString();
+        for (int i = 0; i < jComboBoxBank.getItemCount(); i++) {
+            if (jComboBoxBank.getItemAt(i).contains(bankName)) {
+                jComboBoxBank.setSelectedIndex(i);
+                break;
+            }
+        }
+        
+        Object dateObj = model.getValueAt(selectedRow, 3);
+        txtDate.setText(dateObj != null ? dateObj.toString() : "");
+        
+        jComboBoxStatus.setSelectedItem(model.getValueAt(selectedRow, 4).toString());
+    }//GEN-LAST:event_jTable1MouseClicked
+
+    private void btnUpdateActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnUpdateActionPerformed
+        String idStr = txtAppointmentId.getText().trim();
+        if (idStr.equals("auto") || idStr.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Please select an appointment from the table.");
+            return;
+        }
+
+        int appointmentId = Integer.parseInt(idStr);
+        String dateStr = txtDate.getText().trim();
+        String status = (String) jComboBoxStatus.getSelectedItem();
+        
+        String donorItem = (String) jComboBoxDonor.getSelectedItem();
+        int donorId = Integer.parseInt(donorItem.split(" - ")[0]);
+        
+        String bankItem = (String) jComboBoxBank.getSelectedItem();
+        int bankId = Integer.parseInt(bankItem.split(" - ")[0]);
+
+        String sql = "UPDATE appointment SET donor_id=?, bank_id=?, appointment_date=?, status=? WHERE appointment_id=?";
+        
+        try (Connection con = DBConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            
+            ps.setInt(1, donorId);
+            ps.setInt(2, bankId);
+            ps.setString(3, dateStr);
+            ps.setString(4, status);
+            ps.setInt(5, appointmentId);
+
+            if (ps.executeUpdate() > 0) {
+                JOptionPane.showMessageDialog(this, "Appointment updated successfully!");
+                loadData();
+                clearFields();
+            }
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, "Error: " + e.getMessage());
+        }
+    }//GEN-LAST:event_btnUpdateActionPerformed
+
+    private void btnDeleteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDeleteActionPerformed
+        String idStr = txtAppointmentId.getText().trim();
+        if (idStr.equals("auto") || idStr.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Please select an appointment.");
+            return;
+        }
+
+        int confirm = JOptionPane.showConfirmDialog(this, 
+                "Delete this appointment?", "Confirm", JOptionPane.YES_NO_OPTION);
+        if (confirm != JOptionPane.YES_OPTION) return;
+
+        int appointmentId = Integer.parseInt(idStr);
+        String sql = "DELETE FROM appointment WHERE appointment_id = ?";
+        
+        try (Connection con = DBConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            
+            ps.setInt(1, appointmentId);
+            
+            if (ps.executeUpdate() > 0) {
+                JOptionPane.showMessageDialog(this, "Appointment deleted successfully!");
+                loadData();
+                clearFields();
+            }
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, "Cannot delete. Error: " + e.getMessage());
+        }
+    }//GEN-LAST:event_btnDeleteActionPerformed
+
+    private void btnSearchActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSearchActionPerformed
+        String keyword = txtSearch.getText().trim();
+        if (keyword.isEmpty()) {
+            loadData();
+            return;
+        }
+
+        String sql = "SELECT a.appointment_id, CONCAT(d.first_name, ' ', d.last_name) AS donor_name, "
+                   + "b.bank_name, a.appointment_date, a.status "
+                   + "FROM appointment a "
+                   + "JOIN donor d ON a.donor_id = d.donor_id "
+                   + "JOIN blood_bank b ON a.bank_id = b.bank_id "
+                   + "WHERE d.first_name LIKE ? OR d.last_name LIKE ? OR b.bank_name LIKE ?";
+        
+        String[] cols = {"ID", "Donor", "Bank", "Date and Time", "Status"};
+        DefaultTableModel model = new DefaultTableModel(cols, 0) {
+            @Override
+            public boolean isCellEditable(int row, int column) { return false; }
+        };
+
+        try (Connection con = DBConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            
+            ps.setString(1, "%" + keyword + "%");
+            ps.setString(2, "%" + keyword + "%");
+            ps.setString(3, "%" + keyword + "%");
+            
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                Vector<Object> row = new Vector<>();
+                for (int i = 1; i <= cols.length; i++) {
+                    row.add(rs.getObject(i));
+                }
+                model.addRow(row);
+            }
+            jTable1.setModel(model);
+            
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }//GEN-LAST:event_btnSearchActionPerformed
+
+    private void btnBackActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnBackActionPerformed
+        MainMenuFrame.Main();
+        this.dispose();
+    }//GEN-LAST:event_btnBackActionPerformed
+
     /**
      * @param args the command line arguments
      */
-    public static void main(String args[]) {
+    public static void Main() {
         /* Set the Nimbus look and feel */
         //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
         /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
@@ -297,14 +507,63 @@ public class AppointmentFrame extends javax.swing.JFrame {
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(() -> new AppointmentFrame().setVisible(true));
     }
+        private void loadData() {
+        // 1. Load Donors into the ComboBox (Show "ID - First Last")
+        jComboBoxDonor.removeAllItems();
+        try (Connection con = DBConnection.getConnection();
+             Statement st = con.createStatement();
+             ResultSet rs = st.executeQuery("SELECT donor_id, CONCAT(first_name, ' ', last_name) AS full_name FROM donor")) {
+            while (rs.next()) {
+                jComboBoxDonor.addItem(rs.getInt("donor_id") + " - " + rs.getString("full_name"));
+            }
+        } catch (SQLException e) { e.printStackTrace(); }
+
+        // 2. Load Banks into the ComboBox (Show "ID - Bank Name")
+        jComboBoxBank.removeAllItems();
+        try (Connection con = DBConnection.getConnection();
+             Statement st = con.createStatement();
+             ResultSet rs = st.executeQuery("SELECT bank_id, bank_name FROM blood_bank")) {
+            while (rs.next()) {
+                jComboBoxBank.addItem(rs.getInt("bank_id") + " - " + rs.getString("bank_name"));
+            }
+        } catch (SQLException e) { e.printStackTrace(); }
+
+        // 3. Load Status into ComboBox (fixed values from ENUM)
+        jComboBoxStatus.removeAllItems();
+        jComboBoxStatus.addItem("Scheduled");
+        jComboBoxStatus.addItem("Completed");
+        jComboBoxStatus.addItem("Cancelled");
+        jComboBoxStatus.addItem("No-show");
+
+        // 4. Load Appointments into the Table
+        String sql = "SELECT a.appointment_id, CONCAT(d.first_name, ' ', d.last_name) AS donor_name, "
+                   + "b.bank_name, a.appointment_date, a.status "
+                   + "FROM appointment a "
+                   + "JOIN donor d ON a.donor_id = d.donor_id "
+                   + "JOIN blood_bank b ON a.bank_id = b.bank_id";
+        
+        String[] cols = {"ID", "Donor", "Bank", "Date and Time", "Status"};
+        DatabaseHelper.loadTableData(sql, jTable1, cols);
+    }
+
+    private void clearFields() {
+        txtAppointmentId.setText("auto");
+        txtDate.setText("yyyy-mm-dd hh:mm:ss");
+        
+        if (jComboBoxDonor.getItemCount() > 0) jComboBoxDonor.setSelectedIndex(0);
+        if (jComboBoxBank.getItemCount() > 0) jComboBoxBank.setSelectedIndex(0);
+        if (jComboBoxStatus.getItemCount() > 0) jComboBoxStatus.setSelectedIndex(0);
+        
+        txtSearch.setText("");
+    }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnAdd;
     private javax.swing.JButton btnBack;
     private javax.swing.JButton btnClear;
     private javax.swing.JButton btnDelete;
+    private javax.swing.JButton btnSearch;
     private javax.swing.JButton btnUpdate;
-    private javax.swing.JButton jButton1;
     private javax.swing.JComboBox<String> jComboBoxBank;
     private javax.swing.JComboBox<String> jComboBoxDonor;
     private javax.swing.JComboBox<String> jComboBoxStatus;
