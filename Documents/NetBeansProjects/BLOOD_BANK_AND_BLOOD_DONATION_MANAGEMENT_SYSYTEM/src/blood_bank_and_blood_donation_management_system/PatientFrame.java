@@ -4,6 +4,11 @@
  */
 package blood_bank_and_blood_donation_management_system;
 
+import java.sql.*;
+import javax.swing.JOptionPane;
+import java.util.Vector;
+import javax.swing.table.DefaultTableModel;
+
 /**
  *
  * @author LENOVO
@@ -17,6 +22,12 @@ public class PatientFrame extends javax.swing.JFrame {
      */
     public PatientFrame() {
         initComponents();
+        
+        setTitle("Blood Bank System - Patient Management");
+        setLocationRelativeTo(null);
+        setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
+        
+        loadData();
     }
 
     /**
@@ -28,6 +39,7 @@ public class PatientFrame extends javax.swing.JFrame {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
+        buttonGroup1 = new javax.swing.ButtonGroup();
         jPanel1 = new javax.swing.JPanel();
         jLabel1 = new javax.swing.JLabel();
         btnDelete = new javax.swing.JButton();
@@ -35,7 +47,7 @@ public class PatientFrame extends javax.swing.JFrame {
         btnAdd = new javax.swing.JButton();
         btnClear = new javax.swing.JButton();
         btnBack = new javax.swing.JButton();
-        jButton1 = new javax.swing.JButton();
+        btnSearch = new javax.swing.JButton();
         txtSearch = new javax.swing.JTextField();
         lblSearch = new javax.swing.JLabel();
         jScrollPane1 = new javax.swing.JScrollPane();
@@ -70,22 +82,28 @@ public class PatientFrame extends javax.swing.JFrame {
         btnDelete.setBackground(new java.awt.Color(255, 204, 204));
         btnDelete.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
         btnDelete.setText("Delete");
+        btnDelete.addActionListener(this::btnDeleteActionPerformed);
 
         btnUpdate.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
         btnUpdate.setText("Update");
+        btnUpdate.addActionListener(this::btnUpdateActionPerformed);
 
         btnAdd.setBackground(new java.awt.Color(204, 255, 204));
         btnAdd.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
         btnAdd.setText("Add");
+        btnAdd.addActionListener(this::btnAddActionPerformed);
 
         btnClear.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
         btnClear.setText("Clear");
+        btnClear.addActionListener(this::btnClearActionPerformed);
 
         btnBack.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
         btnBack.setText("Back to Menu");
+        btnBack.addActionListener(this::btnBackActionPerformed);
 
-        jButton1.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
-        jButton1.setText("Search");
+        btnSearch.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
+        btnSearch.setText("Search");
+        btnSearch.addActionListener(this::btnSearchActionPerformed);
 
         lblSearch.setText("Search:");
 
@@ -101,6 +119,11 @@ public class PatientFrame extends javax.swing.JFrame {
                 "ID", "Hospital", "Group", "First", "Last", "Gender", "DOB", "Phone", "Diagnosis"
             }
         ));
+        jTable1.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                jTable1MouseClicked(evt);
+            }
+        });
         jScrollPane1.setViewportView(jTable1);
 
         jPanel2.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(204, 204, 204)));
@@ -116,8 +139,6 @@ public class PatientFrame extends javax.swing.JFrame {
         txtPatientId.setForeground(new java.awt.Color(102, 102, 102));
         txtPatientId.setText("auto");
 
-        txtDate.setFont(new java.awt.Font("Segoe UI", 0, 8)); // NOI18N
-        txtDate.setForeground(new java.awt.Color(204, 204, 204));
         txtDate.setText("yyyy-mm-dd");
 
         lblDate.setText("Date Of Birth:");
@@ -135,10 +156,13 @@ public class PatientFrame extends javax.swing.JFrame {
 
         lblGender.setText("Gender:");
 
+        buttonGroup1.add(rdbtnMale);
         rdbtnMale.setText("Male");
 
+        buttonGroup1.add(rdbtnOther);
         rdbtnOther.setText("Other");
 
+        buttonGroup1.add(rdbtnFemale);
         rdbtnFemale.setText("Female");
 
         lblPhone.setText("Phone:");
@@ -267,7 +291,7 @@ public class PatientFrame extends javax.swing.JFrame {
                         .addGap(18, 18, 18)
                         .addComponent(txtSearch, javax.swing.GroupLayout.PREFERRED_SIZE, 207, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(jButton1)))
+                        .addComponent(btnSearch)))
                 .addGap(0, 0, Short.MAX_VALUE))
         );
         jPanel1Layout.setVerticalGroup(
@@ -289,7 +313,7 @@ public class PatientFrame extends javax.swing.JFrame {
                     .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                         .addComponent(lblSearch)
                         .addComponent(txtSearch, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addComponent(jButton1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                    .addComponent(btnSearch, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 125, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
@@ -313,10 +337,220 @@ public class PatientFrame extends javax.swing.JFrame {
         // TODO add your handling code here:
     }//GEN-LAST:event_jComboBoxBloodGroupActionPerformed
 
+    private void btnAddActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnAddActionPerformed
+        if (jComboBoxHospital.getSelectedItem() == null || jComboBoxBloodGroup.getSelectedItem() == null) {
+            JOptionPane.showMessageDialog(this, "Please ensure Hospitals and Blood Groups exist.");
+            return;
+        }
+
+        String firstName = txtFirstName.getText().trim();
+        String lastName = txtLastName.getText().trim();
+        String dob = txtDate.getText().trim();
+        String phone = txtPhone.getText().trim();
+
+        String gender = "";
+        if (rdbtnMale.isSelected()) gender = "Male";
+        else if (rdbtnFemale.isSelected()) gender = "Female";
+        else if (rdbtnOther.isSelected()) gender = "Other";
+
+        int hospitalId = Integer.parseInt(((String) jComboBoxHospital.getSelectedItem()).split(" - ")[0]);
+        int groupId = Integer.parseInt(((String) jComboBoxBloodGroup.getSelectedItem()).split(" - ")[0]);
+
+        if (firstName.isEmpty() || lastName.isEmpty() || gender.isEmpty() || dob.equals("yyyy-mm-dd")) {
+            JOptionPane.showMessageDialog(this, "First Name, Last Name, Gender, and DOB are required.");
+            return;
+        }
+
+        String sql = "INSERT INTO patient (hospital_id, blood_group_id, first_name, last_name, gender, date_of_birth, phone) "
+                   + "VALUES (?, ?, ?, ?, ?, ?, ?)";
+        
+        try (Connection con = DBConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            
+            ps.setInt(1, hospitalId);
+            ps.setInt(2, groupId);
+            ps.setString(3, firstName);
+            ps.setString(4, lastName);
+            ps.setString(5, gender);
+            ps.setString(6, dob);
+            ps.setString(7, phone);
+
+            if (ps.executeUpdate() > 0) {
+                JOptionPane.showMessageDialog(this, "Patient added successfully!");
+                loadData();
+                clearFields();
+            }
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, "Error: " + e.getMessage());
+        }
+    }//GEN-LAST:event_btnAddActionPerformed
+
+    private void btnClearActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnClearActionPerformed
+        clearFields();
+    }//GEN-LAST:event_btnClearActionPerformed
+
+    private void jTable1MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jTable1MouseClicked
+        int selectedRow = jTable1.getSelectedRow();
+        if (selectedRow == -1) return;
+
+        DefaultTableModel model = (DefaultTableModel) jTable1.getModel();
+        
+        txtPatientId.setText(model.getValueAt(selectedRow, 0).toString());
+        
+        setComboSelection(jComboBoxHospital, model.getValueAt(selectedRow, 1).toString());
+        setComboSelection(jComboBoxBloodGroup, model.getValueAt(selectedRow, 2).toString());
+        
+        txtFirstName.setText(model.getValueAt(selectedRow, 3).toString());
+        txtLastName.setText(model.getValueAt(selectedRow, 4).toString());
+        
+        String gender = model.getValueAt(selectedRow, 5).toString();
+        if (gender.equals("Male")) rdbtnMale.setSelected(true);
+        else if (gender.equals("Female")) rdbtnFemale.setSelected(true);
+        else rdbtnOther.setSelected(true);
+        
+        Object dob = model.getValueAt(selectedRow, 6);
+        txtDate.setText(dob != null ? dob.toString() : "");
+        
+        Object phone = model.getValueAt(selectedRow, 7);
+        txtPhone.setText(phone != null ? phone.toString() : "");
+    }                                    
+
+    // Helper method
+    private void setComboSelection(javax.swing.JComboBox<String> comboBox, String keyword) {
+        for (int i = 0; i < comboBox.getItemCount(); i++) {
+            if (comboBox.getItemAt(i).contains(keyword)) {
+                comboBox.setSelectedIndex(i);
+                return;
+            }
+        }
+    }//GEN-LAST:event_jTable1MouseClicked
+
+    private void btnUpdateActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnUpdateActionPerformed
+        String idStr = txtPatientId.getText().trim();
+        if (idStr.equals("auto") || idStr.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Please select a patient from the table.");
+            return;
+        }
+
+        int patientId = Integer.parseInt(idStr);
+        String firstName = txtFirstName.getText().trim();
+        String lastName = txtLastName.getText().trim();
+        String dob = txtDate.getText().trim();
+        String phone = txtPhone.getText().trim();
+
+        String gender = "";
+        if (rdbtnMale.isSelected()) gender = "Male";
+        else if (rdbtnFemale.isSelected()) gender = "Female";
+        else if (rdbtnOther.isSelected()) gender = "Other";
+
+        int hospitalId = Integer.parseInt(((String) jComboBoxHospital.getSelectedItem()).split(" - ")[0]);
+        int groupId = Integer.parseInt(((String) jComboBoxBloodGroup.getSelectedItem()).split(" - ")[0]);
+
+        String sql = "UPDATE patient SET hospital_id=?, blood_group_id=?, first_name=?, last_name=?, "
+                   + "gender=?, date_of_birth=?, phone=? WHERE patient_id=?";
+        
+        try (Connection con = DBConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            
+            ps.setInt(1, hospitalId);
+            ps.setInt(2, groupId);
+            ps.setString(3, firstName);
+            ps.setString(4, lastName);
+            ps.setString(5, gender);
+            ps.setString(6, dob);
+            ps.setString(7, phone);
+            ps.setInt(8, patientId);
+
+            if (ps.executeUpdate() > 0) {
+                JOptionPane.showMessageDialog(this, "Patient updated successfully!");
+                loadData();
+                clearFields();
+            }
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, "Error: " + e.getMessage());
+        }
+    }//GEN-LAST:event_btnUpdateActionPerformed
+
+    private void btnDeleteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDeleteActionPerformed
+        String idStr = txtPatientId.getText().trim();
+        if (idStr.equals("auto") || idStr.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Please select a patient.");
+            return;
+        }
+
+        int confirm = JOptionPane.showConfirmDialog(this, 
+                "Delete this patient?", "Confirm", JOptionPane.YES_NO_OPTION);
+        if (confirm != JOptionPane.YES_OPTION) return;
+
+        int patientId = Integer.parseInt(idStr);
+        String sql = "DELETE FROM patient WHERE patient_id = ?";
+        
+        try (Connection con = DBConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            
+            ps.setInt(1, patientId);
+            
+            if (ps.executeUpdate() > 0) {
+                JOptionPane.showMessageDialog(this, "Patient deleted successfully!");
+                loadData();
+                clearFields();
+            }
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, "Cannot delete. Linked to blood requests. Error: " + e.getMessage());
+        }
+    }//GEN-LAST:event_btnDeleteActionPerformed
+
+    private void btnSearchActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSearchActionPerformed
+        String keyword = txtSearch.getText().trim();
+        if (keyword.isEmpty()) {
+            loadData();
+            return;
+        }
+
+        String sql = "SELECT p.patient_id, h.hospital_name, bg.group_name, p.first_name, p.last_name, "
+                   + "p.gender, p.date_of_birth, p.phone "
+                   + "FROM patient p "
+                   + "JOIN hospital h ON p.hospital_id = h.hospital_id "
+                   + "JOIN blood_group bg ON p.blood_group_id = bg.blood_group_id "
+                   + "WHERE p.first_name LIKE ? OR p.last_name LIKE ? OR h.hospital_name LIKE ?";
+        
+        String[] cols = {"ID", "Hospital", "Group", "First", "Last", "Gender", "DOB", "Phone"};
+        DefaultTableModel model = new DefaultTableModel(cols, 0) {
+            @Override
+            public boolean isCellEditable(int row, int column) { return false; }
+        };
+
+        try (Connection con = DBConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            
+            ps.setString(1, "%" + keyword + "%");
+            ps.setString(2, "%" + keyword + "%");
+            ps.setString(3, "%" + keyword + "%");
+            
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                Vector<Object> row = new Vector<>();
+                for (int i = 1; i <= cols.length; i++) {
+                    row.add(rs.getObject(i));
+                }
+                model.addRow(row);
+            }
+            jTable1.setModel(model);
+            
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }//GEN-LAST:event_btnSearchActionPerformed
+
+    private void btnBackActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnBackActionPerformed
+        MainMenuFrame.Main();
+        this.dispose();
+    }//GEN-LAST:event_btnBackActionPerformed
+
     /**
      * @param args the command line arguments
      */
-    public static void main(String args[]) {
+    public static void Main() {
         /* Set the Nimbus look and feel */
         //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
         /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
@@ -337,14 +571,60 @@ public class PatientFrame extends javax.swing.JFrame {
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(() -> new PatientFrame().setVisible(true));
     }
+        private void loadData() {
+        // 1. Load Hospitals into ComboBox
+        jComboBoxHospital.removeAllItems();
+        try (Connection con = DBConnection.getConnection();
+             Statement st = con.createStatement();
+             ResultSet rs = st.executeQuery("SELECT hospital_id, hospital_name FROM hospital")) {
+            while (rs.next()) {
+                jComboBoxHospital.addItem(rs.getInt("hospital_id") + " - " + rs.getString("hospital_name"));
+            }
+        } catch (SQLException e) { e.printStackTrace(); }
+
+        // 2. Load Blood Groups into ComboBox
+        jComboBoxBloodGroup.removeAllItems();
+        try (Connection con = DBConnection.getConnection();
+             Statement st = con.createStatement();
+             ResultSet rs = st.executeQuery("SELECT blood_group_id, group_name FROM blood_group")) {
+            while (rs.next()) {
+                jComboBoxBloodGroup.addItem(rs.getInt("blood_group_id") + " - " + rs.getString("group_name"));
+            }
+        } catch (SQLException e) { e.printStackTrace(); }
+
+        // 3. Load Patients into Table
+        String sql = "SELECT p.patient_id, h.hospital_name, bg.group_name, p.first_name, p.last_name, "
+                   + "p.gender, p.date_of_birth, p.phone "
+                   + "FROM patient p "
+                   + "JOIN hospital h ON p.hospital_id = h.hospital_id "
+                   + "JOIN blood_group bg ON p.blood_group_id = bg.blood_group_id";
+        
+        String[] cols = {"ID", "Hospital", "Group", "First", "Last", "Gender", "DOB", "Phone"};
+        DatabaseHelper.loadTableData(sql, jTable1, cols);
+    }
+
+    private void clearFields() {
+        txtPatientId.setText("auto");
+        txtFirstName.setText("");
+        txtLastName.setText("");
+        txtDate.setText("yyyy-mm-dd");
+        txtPhone.setText("");
+        buttonGroup1.clearSelection();
+        
+        if (jComboBoxHospital.getItemCount() > 0) jComboBoxHospital.setSelectedIndex(0);
+        if (jComboBoxBloodGroup.getItemCount() > 0) jComboBoxBloodGroup.setSelectedIndex(0);
+        
+        txtSearch.setText("");
+    }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnAdd;
     private javax.swing.JButton btnBack;
     private javax.swing.JButton btnClear;
     private javax.swing.JButton btnDelete;
+    private javax.swing.JButton btnSearch;
     private javax.swing.JButton btnUpdate;
-    private javax.swing.JButton jButton1;
+    private javax.swing.ButtonGroup buttonGroup1;
     private javax.swing.JComboBox<String> jComboBoxBloodGroup;
     private javax.swing.JComboBox<String> jComboBoxHospital;
     private javax.swing.JLabel jLabel1;
