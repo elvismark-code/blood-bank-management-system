@@ -4,6 +4,9 @@
  */
 package blood_bank_and_blood_donation_management_system;
 
+import javax.swing.JOptionPane;
+import java.sql.*;
+
 /**
  *
  * @author LENOVO
@@ -17,6 +20,8 @@ public class LoginFrame extends javax.swing.JFrame {
      */
     public LoginFrame() {
         initComponents();
+        setTitle("Login-Blood Bank System");
+        setLocationRelativeTo(null);
     }
 
     /**
@@ -59,12 +64,15 @@ public class LoginFrame extends javax.swing.JFrame {
         btnLogin.setBackground(new java.awt.Color(204, 255, 204));
         btnLogin.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
         btnLogin.setText("Login");
+        btnLogin.addActionListener(this::btnLoginActionPerformed);
 
         btnExit.setBackground(new java.awt.Color(255, 204, 204));
         btnExit.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
         btnExit.setText("Exit");
+        btnExit.addActionListener(this::btnExitActionPerformed);
 
         Checkbox.setText("Show password");
+        Checkbox.addActionListener(this::CheckboxActionPerformed);
 
         lblDirective.setFont(new java.awt.Font("Segoe UI Variable", 2, 10)); // NOI18N
         lblDirective.setForeground(new java.awt.Color(153, 153, 153));
@@ -137,6 +145,60 @@ public class LoginFrame extends javax.swing.JFrame {
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
+    private void btnLoginActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnLoginActionPerformed
+          String username = txtUsername.getText().trim();
+          String password = new String(txtPassword.getPassword());
+
+          String sql = "SELECT u.user_id, u.access_level, s.first_name, s.last_name "
+                     + "FROM user_account u "
+                     + "JOIN staff s ON u.staff_id = s.staff_id "
+                     + "WHERE u.username = ? AND u.password_hash = SHA2(?, 256)";
+
+          try (Connection con = DBConnection.getConnection();
+               PreparedStatement ps = con.prepareStatement(sql)) {
+
+              ps.setString(1, username);
+              ps.setString(2, password);
+
+              try (ResultSet rs = ps.executeQuery()) {
+                  if (rs.next()) {
+                      int userId = rs.getInt("user_id");
+
+                      // record the login time
+                      try (PreparedStatement up = con.prepareStatement(
+                              "UPDATE user_account SET last_login = NOW() WHERE user_id = ?")) {
+                          up.setInt(1, userId);
+                          up.executeUpdate();
+                      }
+
+                      MainMenuFrame.Main();
+                      this.dispose();
+                  } else {
+                      JOptionPane.showMessageDialog(null, "Invalid username or password");
+                      txtPassword.setText("");
+                      txtUsername.requestFocus();
+                  }
+              }
+          } catch (SQLException e) {
+              JOptionPane.showMessageDialog(null, "Database error: " + e.getMessage());
+        } 
+    }//GEN-LAST:event_btnLoginActionPerformed
+
+    private void btnExitActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnExitActionPerformed
+          if(JOptionPane.showConfirmDialog(null,"Confirm You want to exit","Warning!!",JOptionPane.YES_NO_OPTION)==JOptionPane.YES_OPTION){
+            System.exit(0);
+        }
+    }//GEN-LAST:event_btnExitActionPerformed
+
+    private void CheckboxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_CheckboxActionPerformed
+        if (Checkbox.isSelected()) {
+           txtPassword.setEchoChar((char) 0);   // show the text
+       } else {
+           txtPassword.setEchoChar('•');        // hide it again
+        }
+    }//GEN-LAST:event_CheckboxActionPerformed
+
+    
     /**
      * @param args the command line arguments
      */

@@ -17,6 +17,8 @@ public class MainMenuFrame extends javax.swing.JFrame {
      */
     public MainMenuFrame() {
         initComponents();
+        setTitle("Blood Bank Management System-Main Menu");
+        setLocationRelativeTo(null);
     }
 
     /**
@@ -64,7 +66,7 @@ public class MainMenuFrame extends javax.swing.JFrame {
         );
         jPanel1Layout.setVerticalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 313, Short.MAX_VALUE)
+            .addGap(0, 319, Short.MAX_VALUE)
         );
 
         menuData.setText("Data");
@@ -72,18 +74,23 @@ public class MainMenuFrame extends javax.swing.JFrame {
         menuDonorManagement.setText("Donor Management");
 
         menuDonors.setText("Donors");
+        menuDonors.addActionListener(this::menuDonorsActionPerformed);
         menuDonorManagement.add(menuDonors);
 
         menuAppointments.setText("Appointments");
+        menuAppointments.addActionListener(this::menuAppointmentsActionPerformed);
         menuDonorManagement.add(menuAppointments);
 
         menuHealthScreening.setText("Health Screening");
+        menuHealthScreening.addActionListener(this::menuHealthScreeningActionPerformed);
         menuDonorManagement.add(menuHealthScreening);
 
         menuDonations.setText("Donations");
+        menuDonations.addActionListener(this::menuDonationsActionPerformed);
         menuDonorManagement.add(menuDonations);
 
         menuCamps.setText("Donation Camps");
+        menuCamps.addActionListener(this::menuCampsActionPerformed);
         menuDonorManagement.add(menuCamps);
 
         menuData.add(menuDonorManagement);
@@ -91,15 +98,19 @@ public class MainMenuFrame extends javax.swing.JFrame {
         menuInventory_and_Lab.setText("Inventory and Lab");
 
         menuBloodUnits.setText("Blood Units");
+        menuBloodUnits.addActionListener(this::menuBloodUnitsActionPerformed);
         menuInventory_and_Lab.add(menuBloodUnits);
 
         menuTests.setText("Blood Tests");
+        menuTests.addActionListener(this::menuTestsActionPerformed);
         menuInventory_and_Lab.add(menuTests);
 
         menuGroups.setText("Blood Groups");
+        menuGroups.addActionListener(this::menuGroupsActionPerformed);
         menuInventory_and_Lab.add(menuGroups);
 
         menuBanks.setText("Blood Banks");
+        menuBanks.addActionListener(this::menuBanksActionPerformed);
         menuInventory_and_Lab.add(menuBanks);
 
         menuData.add(menuInventory_and_Lab);
@@ -107,15 +118,19 @@ public class MainMenuFrame extends javax.swing.JFrame {
         menuHospitalAndRequest.setText("Hospitals and Requests");
 
         menuHospitals.setText("Hospitals");
+        menuHospitals.addActionListener(this::menuHospitalsActionPerformed);
         menuHospitalAndRequest.add(menuHospitals);
 
         menuPatients.setText("Patients");
+        menuPatients.addActionListener(this::menuPatientsActionPerformed);
         menuHospitalAndRequest.add(menuPatients);
 
         menuRequests.setText("Blood Requests");
+        menuRequests.addActionListener(this::menuRequestsActionPerformed);
         menuHospitalAndRequest.add(menuRequests);
 
         menuIssues.setText("Blood issues");
+        menuIssues.addActionListener(this::menuIssuesActionPerformed);
         menuHospitalAndRequest.add(menuIssues);
 
         menuData.add(menuHospitalAndRequest);
@@ -123,9 +138,11 @@ public class MainMenuFrame extends javax.swing.JFrame {
         menuAdmin.setText("Administration(Admin only)");
 
         menuStaff.setText("Staff");
+        menuStaff.addActionListener(this::menuStaffActionPerformed);
         menuAdmin.add(menuStaff);
 
         menuAccounts.setText("User Accounts");
+        menuAccounts.addActionListener(this::menuAccountsActionPerformed);
         menuAdmin.add(menuAccounts);
 
         menuData.add(menuAdmin);
@@ -145,18 +162,91 @@ public class MainMenuFrame extends javax.swing.JFrame {
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addContainerGap())
+            .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
+    private void menuDonorsActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_menuDonorsActionPerformed
+        DonorFrame.Main();
+        this.dispose();
+    }//GEN-LAST:event_menuDonorsActionPerformed
+
+    private void menuBanksActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_menuBanksActionPerformed
+        BloodBankFrame.Main();
+        this.dispose();
+    }//GEN-LAST:event_menuBanksActionPerformed
+
+    private void menuGroupsActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_menuGroupsActionPerformed
+        BloodGroupFrame.Main();
+        this.dispose();
+    }//GEN-LAST:event_menuGroupsActionPerformed
+
+    private void menuStaffActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_menuStaffActionPerformed
+        StaffFrame.Main();
+        this.dispose();
+    }//GEN-LAST:event_menuStaffActionPerformed
+
+    private void menuAccountsActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_menuAccountsActionPerformed
+        UserAccountFrame.Main();
+        this.dispose();
+    }//GEN-LAST:event_menuAccountsActionPerformed
+
+    private void menuAppointmentsActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_menuAppointmentsActionPerformed
+        AppointmentFrame.Main();
+        this.dispose();
+    }//GEN-LAST:event_menuAppointmentsActionPerformed
+
+    private void menuHealthScreeningActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_menuHealthScreeningActionPerformed
+        HealthScreeningFrame.Main();
+        this.dispose();
+    }//GEN-LAST:event_menuHealthScreeningActionPerformed
+
+    private void menuCampsActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_menuCampsActionPerformed
+        DonationCampFrame.Main();
+        this.dispose();
+    }//GEN-LAST:event_menuCampsActionPerformed
+
+    private void menuDonationsActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_menuDonationsActionPerformed
+        DonationFrame.Main();
+        this.dispose();
+    }//GEN-LAST:event_menuDonationsActionPerformed
+
+    private void menuBloodUnitsActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_menuBloodUnitsActionPerformed
+        BloodUnitFrame.Main();
+        this.dispose();
+    }//GEN-LAST:event_menuBloodUnitsActionPerformed
+
+    private void menuTestsActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_menuTestsActionPerformed
+        BloodTestFrame.Main();
+        this.dispose();
+    }//GEN-LAST:event_menuTestsActionPerformed
+
+    private void menuHospitalsActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_menuHospitalsActionPerformed
+        HospitalFrame.Main();
+        this.dispose();
+    }//GEN-LAST:event_menuHospitalsActionPerformed
+
+    private void menuPatientsActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_menuPatientsActionPerformed
+        PatientFrame.Main();
+        this.dispose();
+    }//GEN-LAST:event_menuPatientsActionPerformed
+
+    private void menuRequestsActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_menuRequestsActionPerformed
+        BloodRequestFrame.Main();
+        this.dispose();
+    }//GEN-LAST:event_menuRequestsActionPerformed
+
+    private void menuIssuesActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_menuIssuesActionPerformed
+        BloodIssueFrame.Main();
+        this.dispose();
+    }//GEN-LAST:event_menuIssuesActionPerformed
+
     /**
      * @param args the command line arguments
      */
-    public static void main(String args[]) {
+    public static void Main() {
         /* Set the Nimbus look and feel */
         //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
         /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
