@@ -4,6 +4,11 @@
  */
 package blood_bank_and_blood_donation_management_system;
 
+import java.sql.*;
+import javax.swing.JOptionPane;
+import java.util.Vector;
+import javax.swing.table.DefaultTableModel;
+
 /**
  *
  * @author LENOVO
@@ -17,6 +22,12 @@ public class BloodBankFrame extends javax.swing.JFrame {
      */
     public BloodBankFrame() {
         initComponents();
+        setTitle("Blood Bank System - Blood Bank Management");
+        setLocationRelativeTo(null);
+        loadData();
+        
+        setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
+
     }
 
     /**
@@ -139,22 +150,28 @@ public class BloodBankFrame extends javax.swing.JFrame {
         btnAdd.setBackground(new java.awt.Color(204, 255, 204));
         btnAdd.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
         btnAdd.setText("Add");
+        btnAdd.addActionListener(this::btnAddActionPerformed);
 
         btnUpdate.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
         btnUpdate.setText("Update");
+        btnUpdate.addActionListener(this::btnUpdateActionPerformed);
 
         btnDelete.setBackground(new java.awt.Color(255, 204, 204));
         btnDelete.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
         btnDelete.setText("Delete");
+        btnDelete.addActionListener(this::btnDeleteActionPerformed);
 
         btnClear.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
         btnClear.setText("Clear");
+        btnClear.addActionListener(this::btnClearActionPerformed);
 
         jButton1.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
         jButton1.setText("Search");
+        jButton1.addActionListener(this::jButton1ActionPerformed);
 
         btnBack.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
         btnBack.setText("Back to Menu");
+        btnBack.addActionListener(this::btnBackActionPerformed);
 
         jTable1.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
@@ -167,6 +184,11 @@ public class BloodBankFrame extends javax.swing.JFrame {
                 "ID", "Bank Name", "Location", "Phone", "Email", "License No"
             }
         ));
+        jTable1.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                jTable1MouseClicked(evt);
+            }
+        });
         jScrollPane1.setViewportView(jTable1);
 
         lblSearch.setText("Search:");
@@ -247,10 +269,184 @@ public class BloodBankFrame extends javax.swing.JFrame {
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
+    private void btnAddActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnAddActionPerformed
+        String bankName = txtBankName.getText().trim();
+        String location = txtLocation.getText().trim();
+        String phone = txtPhone.getText().trim();
+        String email = txtEmail.getText().trim();
+        String license = txtLicense.getText().trim();
+
+        if (bankName.isEmpty() || location.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Bank Name and Location are required.");
+            return;
+        }
+
+        String sql = "INSERT INTO blood_bank (bank_name, location, phone, email, license_no) VALUES (?, ?, ?, ?, ?)";
+        
+        try (Connection con = DBConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            
+            ps.setString(1, bankName);
+            ps.setString(2, location);
+            ps.setString(3, phone);
+            ps.setString(4, email);
+            ps.setString(5, license);
+
+            if (ps.executeUpdate() > 0) {
+                JOptionPane.showMessageDialog(this, "Blood Bank added successfully!");
+                loadData();
+                clearFields();
+            }
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, "Error adding bank: " + e.getMessage());
+        }
+    }//GEN-LAST:event_btnAddActionPerformed
+
+    private void btnClearActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnClearActionPerformed
+        clearFields();
+    }//GEN-LAST:event_btnClearActionPerformed
+
+    private void jTable1MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jTable1MouseClicked
+        int selectedRow = jTable1.getSelectedRow();
+        if (selectedRow == -1) return;
+
+        DefaultTableModel model = (DefaultTableModel) jTable1.getModel();
+        
+        // Columns: 0: ID, 1: Name, 2: Location, 3: Phone, 4: Email, 5: License
+        txtBankId.setText(model.getValueAt(selectedRow, 0).toString());
+        txtBankName.setText(model.getValueAt(selectedRow, 1).toString());
+        txtLocation.setText(model.getValueAt(selectedRow, 2).toString());
+        
+        Object phone = model.getValueAt(selectedRow, 3);
+        txtPhone.setText(phone != null ? phone.toString() : "");
+        
+        Object email = model.getValueAt(selectedRow, 4);
+        txtEmail.setText(email != null ? email.toString() : "");
+        
+        Object license = model.getValueAt(selectedRow, 5);
+        txtLicense.setText(license != null ? license.toString() : "");
+    }//GEN-LAST:event_jTable1MouseClicked
+
+    private void btnUpdateActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnUpdateActionPerformed
+        String bankIdStr = txtBankId.getText().trim();
+        if (bankIdStr.equals("auto") || bankIdStr.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Please select a bank from the table to update.");
+            return;
+        }
+
+        int bankId = Integer.parseInt(bankIdStr);
+        String bankName = txtBankName.getText().trim();
+        String location = txtLocation.getText().trim();
+        String phone = txtPhone.getText().trim();
+        String email = txtEmail.getText().trim();
+        String license = txtLicense.getText().trim();
+
+        if (bankName.isEmpty() || location.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Bank Name and Location are required.");
+            return;
+        }
+
+        String sql = "UPDATE blood_bank SET bank_name=?, location=?, phone=?, email=?, license_no=? WHERE bank_id=?";
+        
+        try (Connection con = DBConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            
+            ps.setString(1, bankName);
+            ps.setString(2, location);
+            ps.setString(3, phone);
+            ps.setString(4, email);
+            ps.setString(5, license);
+            ps.setInt(6, bankId);
+
+            if (ps.executeUpdate() > 0) {
+                JOptionPane.showMessageDialog(this, "Bank updated successfully!");
+                loadData();
+                clearFields();
+            }
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, "Error updating bank: " + e.getMessage());
+        }
+    }//GEN-LAST:event_btnUpdateActionPerformed
+
+    private void btnDeleteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDeleteActionPerformed
+        String bankIdStr = txtBankId.getText().trim();
+        if (bankIdStr.equals("auto") || bankIdStr.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Please select a bank from the table to delete.");
+            return;
+        }
+
+        int confirm = JOptionPane.showConfirmDialog(this, 
+                "Are you sure you want to delete this Blood Bank?", "Confirm Delete", 
+                JOptionPane.YES_NO_OPTION);
+        if (confirm != JOptionPane.YES_OPTION) return;
+
+        int bankId = Integer.parseInt(bankIdStr);
+
+        String sql = "DELETE FROM blood_bank WHERE bank_id = ?";
+        
+        try (Connection con = DBConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            
+            ps.setInt(1, bankId);
+            
+            if (ps.executeUpdate() > 0) {
+                JOptionPane.showMessageDialog(this, "Bank deleted successfully!");
+                loadData();
+                clearFields();
+            }
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, 
+                "Cannot delete bank. It has linked records (Staff, Blood Units, etc.).\nError: " + e.getMessage());
+        }
+    }//GEN-LAST:event_btnDeleteActionPerformed
+
+    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
+        String keyword = txtSearch.getText().trim();
+        if (keyword.isEmpty()) {
+            loadData();
+            return;
+        }
+
+        String sql = "SELECT bank_id, bank_name, location, phone, email, license_no FROM blood_bank "
+                   + "WHERE bank_name LIKE ? OR location LIKE ? OR phone LIKE ?";
+        
+        String[] cols = {"ID", "Bank Name", "Location", "Phone", "Email", "License No"};
+        DefaultTableModel model = new DefaultTableModel(cols, 0) {
+            @Override
+            public boolean isCellEditable(int row, int column) { return false; }
+        };
+
+        try (Connection con = DBConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            
+            ps.setString(1, "%" + keyword + "%");
+            ps.setString(2, "%" + keyword + "%");
+            ps.setString(3, "%" + keyword + "%");
+            
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                Vector<Object> row = new Vector<>();
+                for (int i = 1; i <= cols.length; i++) {
+                    row.add(rs.getObject(i));
+                }
+                model.addRow(row);
+            }
+            jTable1.setModel(model);
+            
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }//GEN-LAST:event_jButton1ActionPerformed
+
+    private void btnBackActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnBackActionPerformed
+        MainMenuFrame.Main();
+        this.dispose();
+    }//GEN-LAST:event_btnBackActionPerformed
+
     /**
      * @param args the command line arguments
      */
-    public static void main(String args[]) {
+    public static void Main() {
         /* Set the Nimbus look and feel */
         //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
         /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
@@ -270,6 +466,22 @@ public class BloodBankFrame extends javax.swing.JFrame {
 
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(() -> new BloodBankFrame().setVisible(true));
+    }
+        private void loadData() {
+        // Load Banks into the Table
+        String sql = "SELECT bank_id, bank_name, location, phone, email, license_no FROM blood_bank";
+        
+        String[] cols = {"ID", "Bank Name", "Location", "Phone", "Email", "License No"};
+        DatabaseHelper.loadTableData(sql, jTable1, cols);
+    }
+    private void clearFields() {
+        txtBankId.setText("auto");
+        txtBankName.setText("");
+        txtLocation.setText("");
+        txtPhone.setText("");
+        txtEmail.setText("");
+        txtLicense.setText("");
+        txtSearch.setText("");
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables

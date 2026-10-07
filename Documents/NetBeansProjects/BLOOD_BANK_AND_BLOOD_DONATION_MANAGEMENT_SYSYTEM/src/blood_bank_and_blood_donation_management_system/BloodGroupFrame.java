@@ -4,6 +4,11 @@
  */
 package blood_bank_and_blood_donation_management_system;
 
+import java.sql.*;
+import javax.swing.JOptionPane;
+import java.util.Vector;
+import javax.swing.table.DefaultTableModel;
+
 /**
  *
  * @author LENOVO
@@ -17,6 +22,13 @@ public class BloodGroupFrame extends javax.swing.JFrame {
      */
     public BloodGroupFrame() {
         initComponents();
+        setTitle("Blood Bank System - Blood Group Management");
+        setLocationRelativeTo(null);
+        
+        setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
+
+        
+        loadData();
     }
 
     /**
@@ -44,7 +56,7 @@ public class BloodGroupFrame extends javax.swing.JFrame {
         btnClear = new javax.swing.JButton();
         lblSearch = new javax.swing.JLabel();
         txtSearch = new javax.swing.JTextField();
-        jButton1 = new javax.swing.JButton();
+        btnSearch = new javax.swing.JButton();
         jScrollPane1 = new javax.swing.JScrollPane();
         jTable1 = new javax.swing.JTable();
 
@@ -105,24 +117,30 @@ public class BloodGroupFrame extends javax.swing.JFrame {
         btnAdd.setBackground(new java.awt.Color(204, 255, 204));
         btnAdd.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
         btnAdd.setText("Add");
+        btnAdd.addActionListener(this::btnAddActionPerformed);
 
         btnUpdate.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
         btnUpdate.setText("Update");
+        btnUpdate.addActionListener(this::btnUpdateActionPerformed);
 
         btnBack.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
         btnBack.setText("Back to Menu");
+        btnBack.addActionListener(this::btnBackActionPerformed);
 
         btnDelete.setBackground(new java.awt.Color(255, 204, 204));
         btnDelete.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
         btnDelete.setText("Delete");
+        btnDelete.addActionListener(this::btnDeleteActionPerformed);
 
         btnClear.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
         btnClear.setText("Clear");
+        btnClear.addActionListener(this::btnClearActionPerformed);
 
         lblSearch.setText("Search:");
 
-        jButton1.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
-        jButton1.setText("Search");
+        btnSearch.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
+        btnSearch.setText("Search");
+        btnSearch.addActionListener(this::btnSearchActionPerformed);
 
         jTable1.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
@@ -135,6 +153,11 @@ public class BloodGroupFrame extends javax.swing.JFrame {
                 "ID", "Group Name", "Description"
             }
         ));
+        jTable1.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                jTable1MouseClicked(evt);
+            }
+        });
         jScrollPane1.setViewportView(jTable1);
 
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
@@ -147,7 +170,7 @@ public class BloodGroupFrame extends javax.swing.JFrame {
                 .addGap(18, 18, 18)
                 .addComponent(txtSearch, javax.swing.GroupLayout.PREFERRED_SIZE, 207, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(jButton1)
+                .addComponent(btnSearch)
                 .addGap(0, 0, Short.MAX_VALUE))
             .addGroup(jPanel1Layout.createSequentialGroup()
                 .addGap(40, 40, 40)
@@ -195,7 +218,7 @@ public class BloodGroupFrame extends javax.swing.JFrame {
                     .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                         .addComponent(lblSearch)
                         .addComponent(txtSearch, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addComponent(jButton1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                    .addComponent(btnSearch, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 125, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
@@ -215,10 +238,160 @@ public class BloodGroupFrame extends javax.swing.JFrame {
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
+    private void btnAddActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnAddActionPerformed
+        String groupName = txtGroupName.getText().trim();
+        String description = txtDescription.getText().trim();
+
+        if (groupName.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Group Name is required.");
+            return;
+        }
+
+        String sql = "INSERT INTO blood_group (group_name, description) VALUES (?, ?)";
+        
+        try (Connection con = DBConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            
+            ps.setString(1, groupName);
+            ps.setString(2, description);
+
+            if (ps.executeUpdate() > 0) {
+                JOptionPane.showMessageDialog(this, "Blood Group added successfully!");
+                loadData();
+                clearFields();
+            }
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, "Error: " + e.getMessage());
+        }
+    }//GEN-LAST:event_btnAddActionPerformed
+
+    private void btnClearActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnClearActionPerformed
+        clearFields();
+    }//GEN-LAST:event_btnClearActionPerformed
+
+    private void jTable1MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jTable1MouseClicked
+        int selectedRow = jTable1.getSelectedRow();
+        if (selectedRow == -1) return;
+
+        DefaultTableModel model = (DefaultTableModel) jTable1.getModel();
+        
+        txtGroupId.setText(model.getValueAt(selectedRow, 0).toString());
+        txtGroupName.setText(model.getValueAt(selectedRow, 1).toString());
+        
+        Object desc = model.getValueAt(selectedRow, 2);
+        txtDescription.setText(desc != null ? desc.toString() : "");
+    }//GEN-LAST:event_jTable1MouseClicked
+
+    private void btnUpdateActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnUpdateActionPerformed
+        String groupIdStr = txtGroupId.getText().trim();
+        if (groupIdStr.equals("auto") || groupIdStr.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Please select a blood group from the table.");
+            return;
+        }
+
+        int groupId = Integer.parseInt(groupIdStr);
+        String groupName = txtGroupName.getText().trim();
+        String description = txtDescription.getText().trim();
+
+        if (groupName.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Group Name is required.");
+            return;
+        }
+
+        String sql = "UPDATE blood_group SET group_name=?, description=? WHERE blood_group_id=?";
+        
+        try (Connection con = DBConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            
+            ps.setString(1, groupName);
+            ps.setString(2, description);
+            ps.setInt(3, groupId);
+
+            if (ps.executeUpdate() > 0) {
+                JOptionPane.showMessageDialog(this, "Blood Group updated successfully!");
+                loadData();
+                clearFields();
+            }
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, "Error: " + e.getMessage());
+        }
+    }//GEN-LAST:event_btnUpdateActionPerformed
+
+    private void btnDeleteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDeleteActionPerformed
+        String groupIdStr = txtGroupId.getText().trim();
+        if (groupIdStr.equals("auto") || groupIdStr.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Please select a blood group from the table.");
+            return;
+        }
+
+        int confirm = JOptionPane.showConfirmDialog(this, 
+                "Delete this Blood Group?", "Confirm", JOptionPane.YES_NO_OPTION);
+        if (confirm != JOptionPane.YES_OPTION) return;
+
+        int groupId = Integer.parseInt(groupIdStr);
+        String sql = "DELETE FROM blood_group WHERE blood_group_id = ?";
+        
+        try (Connection con = DBConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            
+            ps.setInt(1, groupId);
+            
+            if (ps.executeUpdate() > 0) {
+                JOptionPane.showMessageDialog(this, "Blood Group deleted successfully!");
+                loadData();
+                clearFields();
+            }
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, "Cannot delete. It's linked to donors/units. Error: " + e.getMessage());
+        }
+    }//GEN-LAST:event_btnDeleteActionPerformed
+
+    private void btnSearchActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSearchActionPerformed
+        String keyword = txtSearch.getText().trim();
+        if (keyword.isEmpty()) {
+            loadData();
+            return;
+        }
+
+        String sql = "SELECT blood_group_id, group_name, description FROM blood_group "
+                   + "WHERE group_name LIKE ? OR description LIKE ?";
+        
+        String[] cols = {"ID", "Group Name", "Description"};
+        DefaultTableModel model = new DefaultTableModel(cols, 0) {
+            @Override
+            public boolean isCellEditable(int row, int column) { return false; }
+        };
+
+        try (Connection con = DBConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            
+            ps.setString(1, "%" + keyword + "%");
+            ps.setString(2, "%" + keyword + "%");
+            
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                Vector<Object> row = new Vector<>();
+                for (int i = 1; i <= cols.length; i++) {
+                    row.add(rs.getObject(i));
+                }
+                model.addRow(row);
+            }
+            jTable1.setModel(model);
+            
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }//GEN-LAST:event_btnSearchActionPerformed
+
+    private void btnBackActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnBackActionPerformed
+        MainMenuFrame.Main();
+        this.dispose();
+    }//GEN-LAST:event_btnBackActionPerformed
+
     /**
      * @param args the command line arguments
      */
-    public static void main(String args[]) {
+    public static void Main() {
         /* Set the Nimbus look and feel */
         //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
         /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
@@ -239,14 +412,26 @@ public class BloodGroupFrame extends javax.swing.JFrame {
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(() -> new BloodGroupFrame().setVisible(true));
     }
+        private void loadData() {
+        String sql = "SELECT blood_group_id, group_name, description FROM blood_group";
+        String[] cols = {"ID", "Group Name", "Description"};
+        DatabaseHelper.loadTableData(sql, jTable1, cols);
+    }
+
+    private void clearFields() {
+        txtGroupId.setText("auto");
+        txtGroupName.setText("");
+        txtDescription.setText("");
+        txtSearch.setText("");
+    }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnAdd;
     private javax.swing.JButton btnBack;
     private javax.swing.JButton btnClear;
     private javax.swing.JButton btnDelete;
+    private javax.swing.JButton btnSearch;
     private javax.swing.JButton btnUpdate;
-    private javax.swing.JButton jButton1;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel2;
