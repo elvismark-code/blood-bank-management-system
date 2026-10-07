@@ -4,6 +4,12 @@
  */
 package blood_bank_and_blood_donation_management_system;
 
+
+import java.sql.*;
+import javax.swing.JOptionPane; 
+import java.util.Vector;
+import javax.swing.table.DefaultTableModel;
+
 /**
  *
  * @author LENOVO
@@ -17,6 +23,11 @@ public class DonorFrame extends javax.swing.JFrame {
      */
     public DonorFrame() {
         initComponents();
+        loadData();
+        setTitle("Donors");
+        setLocationRelativeTo(null);
+        
+        setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
     }
 
     /**
@@ -28,6 +39,7 @@ public class DonorFrame extends javax.swing.JFrame {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
+        buttonGroup1 = new javax.swing.ButtonGroup();
         jPanel1 = new javax.swing.JPanel();
         jLabel1 = new javax.swing.JLabel();
         btnDelete = new javax.swing.JButton();
@@ -35,7 +47,7 @@ public class DonorFrame extends javax.swing.JFrame {
         btnAdd = new javax.swing.JButton();
         btnClear = new javax.swing.JButton();
         btnBack = new javax.swing.JButton();
-        jButton1 = new javax.swing.JButton();
+        btnSearch = new javax.swing.JButton();
         txtSearch = new javax.swing.JTextField();
         lblSearch = new javax.swing.JLabel();
         jScrollPane1 = new javax.swing.JScrollPane();
@@ -74,22 +86,27 @@ public class DonorFrame extends javax.swing.JFrame {
         btnDelete.setBackground(new java.awt.Color(255, 204, 204));
         btnDelete.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
         btnDelete.setText("Delete");
+        btnDelete.addActionListener(this::btnDeleteActionPerformed);
 
         btnUpdate.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
         btnUpdate.setText("Update");
+        btnUpdate.addActionListener(this::btnUpdateActionPerformed);
 
         btnAdd.setBackground(new java.awt.Color(204, 255, 204));
         btnAdd.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
         btnAdd.setText("Add");
+        btnAdd.addActionListener(this::btnAddActionPerformed);
 
         btnClear.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
         btnClear.setText("Clear");
 
         btnBack.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
         btnBack.setText("Back to Menu");
+        btnBack.addActionListener(this::btnBackActionPerformed);
 
-        jButton1.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
-        jButton1.setText("Search");
+        btnSearch.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
+        btnSearch.setText("Search");
+        btnSearch.addActionListener(this::btnSearchActionPerformed);
 
         lblSearch.setText("Search:");
 
@@ -105,6 +122,11 @@ public class DonorFrame extends javax.swing.JFrame {
                 "ID", "Group", "First", "Last", "Gender", "DOB", "Phone", "Reg.Date", "Last Don"
             }
         ));
+        jTable1.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                jTable1MouseClicked(evt);
+            }
+        });
         jScrollPane1.setViewportView(jTable1);
 
         jPanel2.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(204, 204, 204)));
@@ -118,8 +140,6 @@ public class DonorFrame extends javax.swing.JFrame {
         txtDonorId.setForeground(new java.awt.Color(102, 102, 102));
         txtDonorId.setText("auto");
 
-        txtRegistrationDate.setFont(new java.awt.Font("Segoe UI", 0, 8)); // NOI18N
-        txtRegistrationDate.setForeground(new java.awt.Color(204, 204, 204));
         txtRegistrationDate.setText("yyyy-mm-dd");
 
         lblRegistrationDate.setText("Registered On");
@@ -131,24 +151,23 @@ public class DonorFrame extends javax.swing.JFrame {
 
         lblLName.setText("Last Name:");
 
-        txtLastDonationDate.setFont(new java.awt.Font("Segoe UI", 0, 8)); // NOI18N
-        txtLastDonationDate.setForeground(new java.awt.Color(204, 204, 204));
         txtLastDonationDate.setText("yyyy-mm-dd");
 
         lblLastDonationDate.setText("Last Donation");
 
         lblGender.setText("Gender:");
 
+        buttonGroup1.add(rbtnMale);
         rbtnMale.setText("Male");
 
+        buttonGroup1.add(rdbtnOther);
         rdbtnOther.setText("Other");
 
+        buttonGroup1.add(rdbtnFemale);
         rdbtnFemale.setText("Female");
 
         lblDateOfBirth.setText("Date of Birth:");
 
-        txtDateOfBirth.setFont(new java.awt.Font("Segoe UI", 0, 8)); // NOI18N
-        txtDateOfBirth.setForeground(new java.awt.Color(204, 204, 204));
         txtDateOfBirth.setText("yyyy-mm-dd");
 
         lblPhone.setText("Phone:");
@@ -239,7 +258,7 @@ public class DonorFrame extends javax.swing.JFrame {
                         .addComponent(lblPhone)
                         .addComponent(txtPhone, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addComponent(lblEmail)))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 12, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 14, Short.MAX_VALUE)
                 .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(txtRegistrationDate, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
@@ -282,7 +301,7 @@ public class DonorFrame extends javax.swing.JFrame {
                                 .addGap(18, 18, 18)
                                 .addComponent(txtSearch, javax.swing.GroupLayout.PREFERRED_SIZE, 207, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                                .addComponent(jButton1))
+                                .addComponent(btnSearch))
                             .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 647, javax.swing.GroupLayout.PREFERRED_SIZE))))
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
@@ -305,7 +324,7 @@ public class DonorFrame extends javax.swing.JFrame {
                     .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                         .addComponent(lblSearch)
                         .addComponent(txtSearch, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(btnSearch, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 125, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(17, 17, 17))
@@ -325,10 +344,276 @@ public class DonorFrame extends javax.swing.JFrame {
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
+    private void btnAddActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnAddActionPerformed
+
+        // 1. Gather Data from UI
+        String firstName = txtFname.getText().trim();
+        String lastName = txtLname.getText().trim();
+        String phone = txtPhone.getText().trim();
+        String email = txtEmail.getText().trim();
+        String dob = txtDateOfBirth.getText().trim(); 
+        String regDate = txtRegistrationDate.getText().trim();
+        String lastDon = txtLastDonationDate.getText().trim();
+        
+        // Gender
+        String gender = "";
+        if (rbtnMale.isSelected()) gender = "Male";
+        else if (rdbtnFemale.isSelected()) gender = "Female";
+        else if (rdbtnOther.isSelected()) gender = "Other";
+        
+        // Blood Group (Get ID safely using PreparedStatement)
+        String selectedGroup = (String) jComboBoxBloodGroup.getSelectedItem();
+        int groupId = 0;
+        String groupSql = "SELECT blood_group_id FROM blood_group WHERE group_name = ?";
+        
+        try (Connection con = DBConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(groupSql)) {
+            ps.setString(1, selectedGroup);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                groupId = rs.getInt("blood_group_id");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        // 2. Basic Validation
+        if (firstName.isEmpty() || lastName.isEmpty() || gender.isEmpty() || groupId == 0 || dob.equals("yyyy-mm-dd")) {
+            JOptionPane.showMessageDialog(this, "Please fill in all required fields correctly (Dates must be yyyy-mm-dd).");
+            return;
+        }
+
+        // 3. Insert into Database using PreparedStatement
+        String insertSql = "INSERT INTO donor (blood_group_id, first_name, last_name, gender, date_of_birth, phone, email, registration_date, last_donation_date) "
+                         + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        
+        try (Connection con = DBConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(insertSql)) {
+            
+            ps.setInt(1, groupId);
+            ps.setString(2, firstName);
+            ps.setString(3, lastName);
+            ps.setString(4, gender);
+            ps.setString(5, dob);
+            ps.setString(6, phone);
+            ps.setString(7, email);
+            ps.setString(8, regDate);
+            ps.setString(9, lastDon);
+            
+            int rowsAffected = ps.executeUpdate();
+            
+            if (rowsAffected > 0) {
+                JOptionPane.showMessageDialog(this, "Donor added successfully!");
+                loadData(); // Refresh the table
+                clearFields(); // Reset the form
+            } else {
+                JOptionPane.showMessageDialog(this, "Failed to add donor.");
+            }
+            
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, "Database Error: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }//GEN-LAST:event_btnAddActionPerformed
+
+    private void btnSearchActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSearchActionPerformed
+
+    String keyword = txtSearch.getText().trim();
+    if (keyword.isEmpty()) {
+        loadData(); // If empty, show all
+        return;
+    }
+    
+    String sql = "SELECT d.donor_id, bg.group_name, d.first_name, d.last_name, d.gender, "
+               + "d.date_of_birth, d.phone, d.registration_date, d.last_donation_date "
+               + "FROM donor d "
+               + "JOIN blood_group bg ON d.blood_group_id = bg.blood_group_id "
+               + "WHERE d.first_name LIKE ? OR d.last_name LIKE ? OR d.phone LIKE ?";
+    
+    String[] cols = {"ID", "Group", "First", "Last", "Gender", "DOB", "Phone", "Reg.Date", "Last Don"};
+    
+    // We need a custom load for search, so we do it manually here
+    DefaultTableModel model = new DefaultTableModel(cols, 0);
+    try (Connection con = DBConnection.getConnection();
+         PreparedStatement ps = con.prepareStatement(sql)) {
+        ps.setString(1, "%" + keyword + "%");
+        ps.setString(2, "%" + keyword + "%");
+        ps.setString(3, "%" + keyword + "%");
+        ResultSet rs = ps.executeQuery();
+        while (rs.next()) {
+            Vector<Object> row = new Vector<>();
+            for (int i = 1; i <= cols.length; i++) row.add(rs.getObject(i));
+            model.addRow(row);
+        }
+        jTable1.setModel(model);
+    } catch (SQLException e) {
+        e.printStackTrace();
+    }
+    }//GEN-LAST:event_btnSearchActionPerformed
+
+    private void jTable1MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jTable1MouseClicked
+    int selectedRow = jTable1.getSelectedRow();
+    
+    if (selectedRow == -1) return; 
+
+    DefaultTableModel model = (DefaultTableModel) jTable1.getModel();
+    
+    txtDonorId.setText(model.getValueAt(selectedRow, 0).toString());
+    jComboBoxBloodGroup.setSelectedItem(model.getValueAt(selectedRow, 1).toString());
+    txtFname.setText(model.getValueAt(selectedRow, 2).toString());
+    txtLname.setText(model.getValueAt(selectedRow, 3).toString());
+    
+    String gender = model.getValueAt(selectedRow, 4).toString();
+    if (gender.equals("Male")) {
+        rbtnMale.setSelected(true);
+    } else if (gender.equals("Female")) {
+        rdbtnFemale.setSelected(true);
+    } else {
+        rdbtnOther.setSelected(true);
+    }
+
+    txtDateOfBirth.setText(model.getValueAt(selectedRow, 5).toString());
+    txtPhone.setText(model.getValueAt(selectedRow, 6).toString());
+    txtRegistrationDate.setText(model.getValueAt(selectedRow, 7).toString());
+    
+    Object lastDonObj = model.getValueAt(selectedRow, 8);
+    txtLastDonationDate.setText(lastDonObj != null ? lastDonObj.toString() : "");
+
+    }//GEN-LAST:event_jTable1MouseClicked
+
+    private void btnUpdateActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnUpdateActionPerformed
+        // 1. Check if a donor is actually selected
+        String donorIdStr = txtDonorId.getText().trim();
+        if (donorIdStr.equals("auto") || donorIdStr.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Please click a donor in the table first to update.");
+            return;
+        }
+
+        // 2. Gather Data from the form
+        int donorId = Integer.parseInt(donorIdStr);
+        String firstName = txtFname.getText().trim();
+        String lastName = txtLname.getText().trim();
+        String phone = txtPhone.getText().trim();
+        String email = txtEmail.getText().trim();
+        String dob = txtDateOfBirth.getText().trim();
+        String regDate = txtRegistrationDate.getText().trim();
+        String lastDon = txtLastDonationDate.getText().trim();
+
+        // Get Gender
+        String gender = "";
+        if (rbtnMale.isSelected()) gender = "Male";
+        else if (rdbtnFemale.isSelected()) gender = "Female";
+        else if (rdbtnOther.isSelected()) gender = "Other";
+
+        // 3. Get the Blood Group ID from the ComboBox safely
+        String selectedGroup = (String) jComboBoxBloodGroup.getSelectedItem();
+        int groupId = 0;
+        String groupSql = "SELECT blood_group_id FROM blood_group WHERE group_name = ?";
+        
+        try (Connection con = DBConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(groupSql)) {
+            ps.setString(1, selectedGroup);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                groupId = rs.getInt("blood_group_id");
+            }
+        } catch (SQLException e) { 
+            e.printStackTrace(); 
+        }
+
+        // 4. Basic Validation
+        if (firstName.isEmpty() || lastName.isEmpty() || gender.isEmpty() || groupId == 0) {
+            JOptionPane.showMessageDialog(this, "Please fill in all required fields correctly.");
+            return;
+        }
+
+        // 5. Update the Database using PreparedStatement
+        String updateSql = "UPDATE donor SET blood_group_id=?, first_name=?, last_name=?, gender=?, "
+                         + "date_of_birth=?, phone=?, email=?, registration_date=?, last_donation_date=? "
+                         + "WHERE donor_id=?";
+        
+        try (Connection con = DBConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(updateSql)) {
+            
+            ps.setInt(1, groupId);
+            ps.setString(2, firstName);
+            ps.setString(3, lastName);
+            ps.setString(4, gender);
+            ps.setString(5, dob);
+            ps.setString(6, phone);
+            ps.setString(7, email);
+            ps.setString(8, regDate);
+            ps.setString(9, lastDon);
+            ps.setInt(10, donorId); // The ID for the WHERE clause
+
+            int rows = ps.executeUpdate();
+            
+            if (rows > 0) {
+                JOptionPane.showMessageDialog(this, "Donor updated successfully!");
+                loadData(); // Refresh the table to show changes
+                clearFields(); // Clear the form
+            } else {
+                JOptionPane.showMessageDialog(this, "Update failed. Donor might not exist.");
+            }
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, "Database Error: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }//GEN-LAST:event_btnUpdateActionPerformed
+
+    private void btnDeleteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDeleteActionPerformed
+        // 1. Check if a donor is selected
+        String donorIdStr = txtDonorId.getText().trim();
+        if (donorIdStr.equals("auto") || donorIdStr.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Please click a donor in the table first to delete.");
+            return;
+        }
+
+        // 2. Confirm the deletion
+        int confirm = JOptionPane.showConfirmDialog(this, 
+                "Are you sure you want to delete this donor?\nThis action cannot be undone.", 
+                "Confirm Delete", 
+                JOptionPane.YES_NO_OPTION);
+        
+        if (confirm != JOptionPane.YES_OPTION) {
+            return; // User clicked No
+        }
+
+        int donorId = Integer.parseInt(donorIdStr);
+
+        // 3. Delete from the Database using PreparedStatement
+        String deleteSql = "DELETE FROM donor WHERE donor_id = ?";
+        
+        try (Connection con = DBConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(deleteSql)) {
+            
+            ps.setInt(1, donorId);
+            int rows = ps.executeUpdate();
+            
+            if (rows > 0) {
+                JOptionPane.showMessageDialog(this, "Donor deleted successfully!");
+                loadData(); // Refresh table
+                clearFields(); // Clear form
+            } else {
+                JOptionPane.showMessageDialog(this, "Delete failed. Donor not found.");
+            }
+        } catch (SQLException e) {
+            // This error will occur if the donor is linked to other tables (like appointments, donations)
+            JOptionPane.showMessageDialog(this, 
+                "Cannot delete donor. They have linked records (Appointments, Donations, etc.).\nError: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }//GEN-LAST:event_btnDeleteActionPerformed
+
+    private void btnBackActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnBackActionPerformed
+        MainMenuFrame.Main();
+        this.dispose();
+    }//GEN-LAST:event_btnBackActionPerformed
+
     /**
      * @param args the command line arguments
      */
-    public static void main(String args[]) {
+    public static void Main() {
         /* Set the Nimbus look and feel */
         //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
         /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
@@ -349,14 +634,45 @@ public class DonorFrame extends javax.swing.JFrame {
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(() -> new DonorFrame().setVisible(true));
     }
+        // Add this method above the "Variables declaration" section
+    private void loadData() {
+        // 1. Load Blood Groups into the ComboBox
+        DatabaseHelper.loadComboBox("SELECT group_name FROM blood_group", jComboBoxBloodGroup);
+
+        // 2. Load Donors into the Table using a JOIN
+        String sql = "SELECT d.donor_id, bg.group_name, d.first_name, d.last_name, d.gender, "
+                   + "d.date_of_birth, d.phone, d.registration_date, d.last_donation_date "
+                   + "FROM donor d "
+                   + "JOIN blood_group bg ON d.blood_group_id = bg.blood_group_id";
+        
+        String[] cols = {"ID", "Group", "First", "Last", "Gender", "DOB", "Phone", "Reg.Date", "Last Don"};
+        DatabaseHelper.loadTableData(sql, jTable1, cols);
+    }
+        private void clearFields() {
+        txtDonorId.setText("auto");
+        txtFname.setText("");
+        txtLname.setText("");
+        txtPhone.setText("");
+        txtEmail.setText("");
+        txtDateOfBirth.setText("yyyy-mm-dd");
+        txtRegistrationDate.setText("yyyy-mm-dd");
+        txtLastDonationDate.setText("yyyy-mm-dd");
+        buttonGroup1.clearSelection();
+        
+        if (jComboBoxBloodGroup.getItemCount() > 0) {
+            jComboBoxBloodGroup.setSelectedIndex(0);
+        }
+        txtSearch.setText("");
+    }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnAdd;
     private javax.swing.JButton btnBack;
     private javax.swing.JButton btnClear;
     private javax.swing.JButton btnDelete;
+    private javax.swing.JButton btnSearch;
     private javax.swing.JButton btnUpdate;
-    private javax.swing.JButton jButton1;
+    private javax.swing.ButtonGroup buttonGroup1;
     private javax.swing.JComboBox<String> jComboBoxBloodGroup;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JPanel jPanel1;
