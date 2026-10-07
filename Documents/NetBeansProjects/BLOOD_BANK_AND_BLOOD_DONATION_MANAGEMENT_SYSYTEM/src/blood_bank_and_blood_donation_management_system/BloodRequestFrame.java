@@ -4,6 +4,11 @@
  */
 package blood_bank_and_blood_donation_management_system;
 
+import java.sql.*;
+import javax.swing.JOptionPane;
+import java.util.Vector;
+import javax.swing.table.DefaultTableModel;
+
 /**
  *
  * @author LENOVO
@@ -17,6 +22,14 @@ public class BloodRequestFrame extends javax.swing.JFrame {
      */
     public BloodRequestFrame() {
         initComponents();
+        
+        setTitle("Blood Bank System - Blood Requests");
+        setLocationRelativeTo(null);
+        
+        setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
+
+        
+        loadData();
     }
 
     /**
@@ -70,22 +83,28 @@ public class BloodRequestFrame extends javax.swing.JFrame {
         btnDelete.setBackground(new java.awt.Color(255, 204, 204));
         btnDelete.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
         btnDelete.setText("Delete");
+        btnDelete.addActionListener(this::btnDeleteActionPerformed);
 
         btnUpdate.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
         btnUpdate.setText("Update");
+        btnUpdate.addActionListener(this::btnUpdateActionPerformed);
 
         btnAdd.setBackground(new java.awt.Color(204, 255, 204));
         btnAdd.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
         btnAdd.setText("Add");
+        btnAdd.addActionListener(this::btnAddActionPerformed);
 
         btnClear.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
         btnClear.setText("Clear");
+        btnClear.addActionListener(this::btnClearActionPerformed);
 
         btnBack.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
         btnBack.setText("Back to Menu");
+        btnBack.addActionListener(this::btnBackActionPerformed);
 
         jButton1.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
         jButton1.setText("Search");
+        jButton1.addActionListener(this::jButton1ActionPerformed);
 
         lblSearch.setText("Search:");
 
@@ -101,6 +120,11 @@ public class BloodRequestFrame extends javax.swing.JFrame {
                 "ID", "Hospital", "Patient", "Group", "Units", "Urgency", "Date", "Status"
             }
         ));
+        jTable1.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                jTable1MouseClicked(evt);
+            }
+        });
         jScrollPane1.setViewportView(jTable1);
 
         jPanel2.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(204, 204, 204)));
@@ -116,8 +140,6 @@ public class BloodRequestFrame extends javax.swing.JFrame {
         txtRequestId.setForeground(new java.awt.Color(102, 102, 102));
         txtRequestId.setText("auto");
 
-        txtDate.setFont(new java.awt.Font("Segoe UI", 0, 8)); // NOI18N
-        txtDate.setForeground(new java.awt.Color(204, 204, 204));
         txtDate.setText("yyyy-mm-dd");
         txtDate.addActionListener(this::txtDateActionPerformed);
 
@@ -227,10 +249,12 @@ public class BloodRequestFrame extends javax.swing.JFrame {
 
         btnApprove.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
         btnApprove.setText("Approve");
+        btnApprove.addActionListener(this::btnApproveActionPerformed);
 
         btnReject.setBackground(new java.awt.Color(255, 204, 204));
         btnReject.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
         btnReject.setText("Reject");
+        btnReject.addActionListener(this::btnRejectActionPerformed);
 
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
@@ -334,10 +358,256 @@ public class BloodRequestFrame extends javax.swing.JFrame {
         // TODO add your handling code here:
     }//GEN-LAST:event_jComboBoxStatusActionPerformed
 
+    private void btnAddActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnAddActionPerformed
+        if (jComboBoxHospital.getSelectedItem() == null || jComboBoxPatient.getSelectedItem() == null 
+            || jComboBoxBloodGroup.getSelectedItem() == null) {
+            JOptionPane.showMessageDialog(this, "Please ensure Hospitals, Patients, and Blood Groups exist.");
+            return;
+        }
+
+        String dateStr = txtDate.getText().trim();
+        int units = (int) jSpinnerUnitsRequested.getValue();
+        String urgency = (String) jComboBoxUrgency.getSelectedItem();
+        String status = (String) jComboBoxStatus.getSelectedItem();
+
+        int hospitalId = Integer.parseInt(((String) jComboBoxHospital.getSelectedItem()).split(" - ")[0]);
+        int patientId = Integer.parseInt(((String) jComboBoxPatient.getSelectedItem()).split(" - ")[0]);
+        int groupId = Integer.parseInt(((String) jComboBoxBloodGroup.getSelectedItem()).split(" - ")[0]);
+
+        if (dateStr.equals("yyyy-mm-dd hh:mm:ss") || dateStr.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Please enter a valid Request Date.");
+            return;
+        }
+
+        String sql = "INSERT INTO blood_request (hospital_id, patient_id, blood_group_id, units_requested, "
+                   + "urgency, request_date, status) VALUES (?, ?, ?, ?, ?, ?, ?)";
+        
+        try (Connection con = DBConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            
+            ps.setInt(1, hospitalId);
+            ps.setInt(2, patientId);
+            ps.setInt(3, groupId);
+            ps.setInt(4, units);
+            ps.setString(5, urgency);
+            ps.setString(6, dateStr);
+            ps.setString(7, status);
+
+            if (ps.executeUpdate() > 0) {
+                JOptionPane.showMessageDialog(this, "Blood Request added successfully!");
+                loadData();
+                clearFields();
+            }
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, "Error: " + e.getMessage());
+        }
+    }//GEN-LAST:event_btnAddActionPerformed
+
+    private void btnClearActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnClearActionPerformed
+        clearFields();
+    }//GEN-LAST:event_btnClearActionPerformed
+
+    private void jTable1MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jTable1MouseClicked
+        int selectedRow = jTable1.getSelectedRow();
+        if (selectedRow == -1) return;
+
+        DefaultTableModel model = (DefaultTableModel) jTable1.getModel();
+        
+        txtRequestId.setText(model.getValueAt(selectedRow, 0).toString());
+        setComboSelection(jComboBoxHospital, model.getValueAt(selectedRow, 1).toString());
+        setComboSelection(jComboBoxPatient, model.getValueAt(selectedRow, 2).toString());
+        setComboSelection(jComboBoxBloodGroup, model.getValueAt(selectedRow, 3).toString());
+        
+        jSpinnerUnitsRequested.setValue(model.getValueAt(selectedRow, 4));
+        jComboBoxUrgency.setSelectedItem(model.getValueAt(selectedRow, 5).toString());
+        
+        Object dateObj = model.getValueAt(selectedRow, 6);
+        txtDate.setText(dateObj != null ? dateObj.toString() : "");
+        
+        jComboBoxStatus.setSelectedItem(model.getValueAt(selectedRow, 7).toString());
+    }                                    
+
+    // Helper method
+    private void setComboSelection(javax.swing.JComboBox<String> comboBox, String keyword) {
+        for (int i = 0; i < comboBox.getItemCount(); i++) {
+            if (comboBox.getItemAt(i).contains(keyword)) {
+                comboBox.setSelectedIndex(i);
+                return;
+            }
+        }
+    }//GEN-LAST:event_jTable1MouseClicked
+
+    private void btnUpdateActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnUpdateActionPerformed
+        String idStr = txtRequestId.getText().trim();
+        if (idStr.equals("auto") || idStr.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Please select a request from the table.");
+            return;
+        }
+
+        int requestId = Integer.parseInt(idStr);
+        String dateStr = txtDate.getText().trim();
+        int units = (int) jSpinnerUnitsRequested.getValue();
+        String urgency = (String) jComboBoxUrgency.getSelectedItem();
+        String status = (String) jComboBoxStatus.getSelectedItem();
+
+        int hospitalId = Integer.parseInt(((String) jComboBoxHospital.getSelectedItem()).split(" - ")[0]);
+        int patientId = Integer.parseInt(((String) jComboBoxPatient.getSelectedItem()).split(" - ")[0]);
+        int groupId = Integer.parseInt(((String) jComboBoxBloodGroup.getSelectedItem()).split(" - ")[0]);
+
+        String sql = "UPDATE blood_request SET hospital_id=?, patient_id=?, blood_group_id=?, units_requested=?, "
+                   + "urgency=?, request_date=?, status=? WHERE request_id=?";
+        
+        try (Connection con = DBConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            
+            ps.setInt(1, hospitalId);
+            ps.setInt(2, patientId);
+            ps.setInt(3, groupId);
+            ps.setInt(4, units);
+            ps.setString(5, urgency);
+            ps.setString(6, dateStr);
+            ps.setString(7, status);
+            ps.setInt(8, requestId);
+
+            if (ps.executeUpdate() > 0) {
+                JOptionPane.showMessageDialog(this, "Blood Request updated successfully!");
+                loadData();
+                clearFields();
+            }
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, "Error: " + e.getMessage());
+        }
+    }//GEN-LAST:event_btnUpdateActionPerformed
+
+    private void btnDeleteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDeleteActionPerformed
+        String idStr = txtRequestId.getText().trim();
+        if (idStr.equals("auto") || idStr.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Please select a request.");
+            return;
+        }
+
+        int confirm = JOptionPane.showConfirmDialog(this, 
+                "Delete this blood request?", "Confirm", JOptionPane.YES_NO_OPTION);
+        if (confirm != JOptionPane.YES_OPTION) return;
+
+        int requestId = Integer.parseInt(idStr);
+        String sql = "DELETE FROM blood_request WHERE request_id = ?";
+        
+        try (Connection con = DBConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            
+            ps.setInt(1, requestId);
+            
+            if (ps.executeUpdate() > 0) {
+                JOptionPane.showMessageDialog(this, "Blood Request deleted successfully!");
+                loadData();
+                clearFields();
+            }
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, "Cannot delete. Linked to blood issues. Error: " + e.getMessage());
+        }
+    }//GEN-LAST:event_btnDeleteActionPerformed
+
+    private void btnApproveActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnApproveActionPerformed
+        String idStr = txtRequestId.getText().trim();
+        if (idStr.equals("auto") || idStr.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Please select a request from the table.");
+            return;
+        }
+
+        int requestId = Integer.parseInt(idStr);
+        String sql = "UPDATE blood_request SET status='Approved' WHERE request_id=?";
+        
+        try (Connection con = DBConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            
+            ps.setInt(1, requestId);
+            if (ps.executeUpdate() > 0) {
+                JOptionPane.showMessageDialog(this, "Request approved successfully!");
+                loadData();
+                clearFields();
+            }
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, "Error: " + e.getMessage());
+        }
+    }//GEN-LAST:event_btnApproveActionPerformed
+
+    private void btnRejectActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnRejectActionPerformed
+        String idStr = txtRequestId.getText().trim();
+        if (idStr.equals("auto") || idStr.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Please select a request from the table.");
+            return;
+        }
+
+        int requestId = Integer.parseInt(idStr);
+        String sql = "UPDATE blood_request SET status='Rejected' WHERE request_id=?";
+        
+        try (Connection con = DBConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            
+            ps.setInt(1, requestId);
+            if (ps.executeUpdate() > 0) {
+                JOptionPane.showMessageDialog(this, "Request rejected successfully!");
+                loadData();
+                clearFields();
+            }
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, "Error: " + e.getMessage());
+        }
+    }//GEN-LAST:event_btnRejectActionPerformed
+
+    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
+        String keyword = txtSearch.getText().trim();
+        if (keyword.isEmpty()) {
+            loadData();
+            return;
+        }
+
+        String sql = "SELECT r.request_id, h.hospital_name, CONCAT(p.first_name, ' ', p.last_name) AS patient_name, "
+                   + "bg.group_name, r.units_requested, r.urgency, r.request_date, r.status "
+                   + "FROM blood_request r "
+                   + "JOIN hospital h ON r.hospital_id = h.hospital_id "
+                   + "JOIN patient p ON r.patient_id = p.patient_id "
+                   + "JOIN blood_group bg ON r.blood_group_id = bg.blood_group_id "
+                   + "WHERE h.hospital_name LIKE ? OR p.first_name LIKE ? OR r.status LIKE ?";
+        
+        String[] cols = {"ID", "Hospital", "Patient", "Group", "Units", "Urgency", "Date", "Status"};
+        DefaultTableModel model = new DefaultTableModel(cols, 0) {
+            @Override
+            public boolean isCellEditable(int row, int column) { return false; }
+        };
+
+        try (Connection con = DBConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            
+            ps.setString(1, "%" + keyword + "%");
+            ps.setString(2, "%" + keyword + "%");
+            ps.setString(3, "%" + keyword + "%");
+            
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                Vector<Object> row = new Vector<>();
+                for (int i = 1; i <= cols.length; i++) {
+                    row.add(rs.getObject(i));
+                }
+                model.addRow(row);
+            }
+            jTable1.setModel(model);
+            
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }//GEN-LAST:event_jButton1ActionPerformed
+
+    private void btnBackActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnBackActionPerformed
+        MainMenuFrame.Main();
+        this.dispose();
+    }//GEN-LAST:event_btnBackActionPerformed
+
     /**
      * @param args the command line arguments
      */
-    public static void main(String args[]) {
+    public static void Main() {
         /* Set the Nimbus look and feel */
         //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
         /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
@@ -357,6 +627,75 @@ public class BloodRequestFrame extends javax.swing.JFrame {
 
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(() -> new BloodRequestFrame().setVisible(true));
+    }
+        private void loadData() {
+        // 1. Load Hospitals
+        jComboBoxHospital.removeAllItems();
+        try (Connection con = DBConnection.getConnection();
+             Statement st = con.createStatement();
+             ResultSet rs = st.executeQuery("SELECT hospital_id, hospital_name FROM hospital")) {
+            while (rs.next()) {
+                jComboBoxHospital.addItem(rs.getInt("hospital_id") + " - " + rs.getString("hospital_name"));
+            }
+        } catch (SQLException e) { e.printStackTrace(); }
+
+        // 2. Load Patients
+        jComboBoxPatient.removeAllItems();
+        try (Connection con = DBConnection.getConnection();
+             Statement st = con.createStatement();
+             ResultSet rs = st.executeQuery("SELECT patient_id, CONCAT(first_name, ' ', last_name) AS full_name FROM patient")) {
+            while (rs.next()) {
+                jComboBoxPatient.addItem(rs.getInt("patient_id") + " - " + rs.getString("full_name"));
+            }
+        } catch (SQLException e) { e.printStackTrace(); }
+
+        // 3. Load Blood Groups
+        jComboBoxBloodGroup.removeAllItems();
+        try (Connection con = DBConnection.getConnection();
+             Statement st = con.createStatement();
+             ResultSet rs = st.executeQuery("SELECT blood_group_id, group_name FROM blood_group")) {
+            while (rs.next()) {
+                jComboBoxBloodGroup.addItem(rs.getInt("blood_group_id") + " - " + rs.getString("group_name"));
+            }
+        } catch (SQLException e) { e.printStackTrace(); }
+
+        // 4. Load Urgency (fixed ENUM)
+        jComboBoxUrgency.removeAllItems();
+        jComboBoxUrgency.addItem("Normal");
+        jComboBoxUrgency.addItem("Urgent");
+        jComboBoxUrgency.addItem("Emergency");
+
+        // 5. Load Status (fixed ENUM)
+        jComboBoxStatus.removeAllItems();
+        jComboBoxStatus.addItem("Pending");
+        jComboBoxStatus.addItem("Approved");
+        jComboBoxStatus.addItem("Fulfilled");
+        jComboBoxStatus.addItem("Rejected");
+
+        // 6. Load Requests into the Table
+        String sql = "SELECT r.request_id, h.hospital_name, CONCAT(p.first_name, ' ', p.last_name) AS patient_name, "
+                   + "bg.group_name, r.units_requested, r.urgency, r.request_date, r.status "
+                   + "FROM blood_request r "
+                   + "JOIN hospital h ON r.hospital_id = h.hospital_id "
+                   + "JOIN patient p ON r.patient_id = p.patient_id "
+                   + "JOIN blood_group bg ON r.blood_group_id = bg.blood_group_id";
+        
+        String[] cols = {"ID", "Hospital", "Patient", "Group", "Units", "Urgency", "Date", "Status"};
+        DatabaseHelper.loadTableData(sql, jTable1, cols);
+    }
+
+    private void clearFields() {
+        txtRequestId.setText("auto");
+        txtDate.setText("yyyy-mm-dd hh:mm:ss");
+        jSpinnerUnitsRequested.setValue(1);
+        
+        if (jComboBoxHospital.getItemCount() > 0) jComboBoxHospital.setSelectedIndex(0);
+        if (jComboBoxPatient.getItemCount() > 0) jComboBoxPatient.setSelectedIndex(0);
+        if (jComboBoxBloodGroup.getItemCount() > 0) jComboBoxBloodGroup.setSelectedIndex(0);
+        if (jComboBoxUrgency.getItemCount() > 0) jComboBoxUrgency.setSelectedIndex(0);
+        if (jComboBoxStatus.getItemCount() > 0) jComboBoxStatus.setSelectedIndex(0);
+        
+        txtSearch.setText("");
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables

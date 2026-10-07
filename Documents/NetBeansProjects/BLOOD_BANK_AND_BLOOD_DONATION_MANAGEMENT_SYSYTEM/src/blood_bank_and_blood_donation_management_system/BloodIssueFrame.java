@@ -4,6 +4,10 @@
  */
 package blood_bank_and_blood_donation_management_system;
 
+import java.sql.*;
+import javax.swing.JOptionPane;
+import java.util.Vector;
+import javax.swing.table.DefaultTableModel;
 /**
  *
  * @author LENOVO
@@ -17,6 +21,14 @@ public class BloodIssueFrame extends javax.swing.JFrame {
      */
     public BloodIssueFrame() {
         initComponents();
+        setTitle("Blood Bank System - Blood Issues");
+        setLocationRelativeTo(null);
+        
+        setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
+
+        
+        loadData();
+        
     }
 
     /**
@@ -35,7 +47,7 @@ public class BloodIssueFrame extends javax.swing.JFrame {
         btnAdd = new javax.swing.JButton();
         btnClear = new javax.swing.JButton();
         btnBack = new javax.swing.JButton();
-        jButton1 = new javax.swing.JButton();
+        btnSearch = new javax.swing.JButton();
         txtSearch = new javax.swing.JTextField();
         lblSearch = new javax.swing.JLabel();
         jScrollPane1 = new javax.swing.JScrollPane();
@@ -67,28 +79,34 @@ public class BloodIssueFrame extends javax.swing.JFrame {
         btnDelete.setBackground(new java.awt.Color(255, 204, 204));
         btnDelete.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
         btnDelete.setText("Delete");
+        btnDelete.addActionListener(this::btnDeleteActionPerformed);
         jPanel1.add(btnDelete, new org.netbeans.lib.awtextra.AbsoluteConstraints(220, 320, -1, 33));
 
         btnUpdate.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
         btnUpdate.setText("Update");
+        btnUpdate.addActionListener(this::btnUpdateActionPerformed);
         jPanel1.add(btnUpdate, new org.netbeans.lib.awtextra.AbsoluteConstraints(130, 320, -1, 33));
 
         btnAdd.setBackground(new java.awt.Color(204, 255, 204));
         btnAdd.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
         btnAdd.setText("Add");
+        btnAdd.addActionListener(this::btnAddActionPerformed);
         jPanel1.add(btnAdd, new org.netbeans.lib.awtextra.AbsoluteConstraints(50, 320, -1, 33));
 
         btnClear.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
         btnClear.setText("Clear");
+        btnClear.addActionListener(this::btnClearActionPerformed);
         jPanel1.add(btnClear, new org.netbeans.lib.awtextra.AbsoluteConstraints(310, 320, -1, 33));
 
         btnBack.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
         btnBack.setText("Back to Menu");
+        btnBack.addActionListener(this::btnBackActionPerformed);
         jPanel1.add(btnBack, new org.netbeans.lib.awtextra.AbsoluteConstraints(630, 320, -1, 33));
 
-        jButton1.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
-        jButton1.setText("Search");
-        jPanel1.add(jButton1, new org.netbeans.lib.awtextra.AbsoluteConstraints(330, 360, -1, 30));
+        btnSearch.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
+        btnSearch.setText("Search");
+        btnSearch.addActionListener(this::btnSearchActionPerformed);
+        jPanel1.add(btnSearch, new org.netbeans.lib.awtextra.AbsoluteConstraints(330, 360, -1, 30));
         jPanel1.add(txtSearch, new org.netbeans.lib.awtextra.AbsoluteConstraints(110, 360, 207, 30));
 
         lblSearch.setText("Search:");
@@ -106,6 +124,11 @@ public class BloodIssueFrame extends javax.swing.JFrame {
                 "ID", "Request", "Unit", "Staff", "Date", "Remarks"
             }
         ));
+        jTable1.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                jTable1MouseClicked(evt);
+            }
+        });
         jScrollPane1.setViewportView(jTable1);
 
         jPanel1.add(jScrollPane1, new org.netbeans.lib.awtextra.AbsoluteConstraints(40, 400, 730, 125));
@@ -126,8 +149,6 @@ public class BloodIssueFrame extends javax.swing.JFrame {
 
         lblDate.setText("Issue Date:");
 
-        txtDate.setFont(new java.awt.Font("Segoe UI", 0, 8)); // NOI18N
-        txtDate.setForeground(new java.awt.Color(204, 204, 204));
         txtDate.setText("yyyy-mm-dd");
 
         jComboBoxBloodUnit.setForeground(new java.awt.Color(204, 204, 204));
@@ -233,10 +254,229 @@ public class BloodIssueFrame extends javax.swing.JFrame {
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
+    private void btnAddActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnAddActionPerformed
+        if (jComboBoxRequest.getSelectedItem() == null || jComboBoxBloodUnit.getSelectedItem() == null 
+            || jComboBoxStaff.getSelectedItem() == null) {
+            JOptionPane.showMessageDialog(this, "Please ensure Requests, Blood Units, and Staff exist.");
+            return;
+        }
+
+        String dateStr = txtDate.getText().trim();
+        String remarks = jTextArea1.getText().trim();
+
+        int requestId = Integer.parseInt(((String) jComboBoxRequest.getSelectedItem()).split(" - ")[0]);
+        int unitId = Integer.parseInt(((String) jComboBoxBloodUnit.getSelectedItem()).split(" - ")[0]);
+        int staffId = Integer.parseInt(((String) jComboBoxStaff.getSelectedItem()).split(" - ")[0]);
+
+        if (dateStr.equals("yyyy-mm-dd hh:mm:ss") || dateStr.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Please enter a valid Issue Date.");
+            return;
+        }
+
+        String insertSql = "INSERT INTO blood_issue (request_id, unit_id, staff_id, issue_date, remarks) VALUES (?, ?, ?, ?, ?)";
+        String updateUnitSql = "UPDATE blood_unit SET status='Issued' WHERE unit_id=?";
+        
+        try (Connection con = DBConnection.getConnection()) {
+            con.setAutoCommit(false); // Start Transaction
+
+            try (PreparedStatement ps1 = con.prepareStatement(insertSql);
+                 PreparedStatement ps2 = con.prepareStatement(updateUnitSql)) {
+                
+                // 1. Insert the issue record
+                ps1.setInt(1, requestId);
+                ps1.setInt(2, unitId);
+                ps1.setInt(3, staffId);
+                ps1.setString(4, dateStr);
+                ps1.setString(5, remarks);
+                ps1.executeUpdate();
+
+                // 2. Mark the blood unit as "Issued" so it can't be issued again
+                ps2.setInt(1, unitId);
+                ps2.executeUpdate();
+
+                con.commit(); // Commit both changes together
+                JOptionPane.showMessageDialog(this, "Blood Issue recorded successfully!");
+                loadData();
+                clearFields();
+            } catch (SQLException ex) {
+                con.rollback(); // Undo if anything fails
+                throw ex;
+            }
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, "Error: " + e.getMessage());
+        }
+    }//GEN-LAST:event_btnAddActionPerformed
+
+    private void btnClearActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnClearActionPerformed
+        clearFields();
+    }//GEN-LAST:event_btnClearActionPerformed
+
+    private void jTable1MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jTable1MouseClicked
+        int selectedRow = jTable1.getSelectedRow();
+        if (selectedRow == -1) return;
+
+        DefaultTableModel model = (DefaultTableModel) jTable1.getModel();
+        
+        txtIssueId.setText(model.getValueAt(selectedRow, 0).toString());
+        
+        // Match Request (Table shows request_id, Combo shows "id - patient")
+        String reqIdStr = model.getValueAt(selectedRow, 1).toString();
+        for (int i = 0; i < jComboBoxRequest.getItemCount(); i++) {
+            if (jComboBoxRequest.getItemAt(i).startsWith(reqIdStr + " - ")) {
+                jComboBoxRequest.setSelectedIndex(i);
+                break;
+            }
+        }
+        
+        // Match Unit
+        String unitIdStr = model.getValueAt(selectedRow, 2).toString();
+        for (int i = 0; i < jComboBoxBloodUnit.getItemCount(); i++) {
+            if (jComboBoxBloodUnit.getItemAt(i).startsWith(unitIdStr + " - ")) {
+                jComboBoxBloodUnit.setSelectedIndex(i);
+                break;
+            }
+        }
+        
+        // Match Staff
+        setComboSelection(jComboBoxStaff, model.getValueAt(selectedRow, 3).toString());
+        
+        Object dateObj = model.getValueAt(selectedRow, 4);
+        txtDate.setText(dateObj != null ? dateObj.toString() : "");
+        
+        Object remarksObj = model.getValueAt(selectedRow, 5);
+        jTextArea1.setText(remarksObj != null ? remarksObj.toString() : "");
+    }                                    
+
+    // Helper method
+    private void setComboSelection(javax.swing.JComboBox<String> comboBox, String keyword) {
+        for (int i = 0; i < comboBox.getItemCount(); i++) {
+            if (comboBox.getItemAt(i).contains(keyword)) {
+                comboBox.setSelectedIndex(i);
+                return;
+            }
+        }
+    }//GEN-LAST:event_jTable1MouseClicked
+
+    private void btnUpdateActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnUpdateActionPerformed
+        String idStr = txtIssueId.getText().trim();
+        if (idStr.equals("auto") || idStr.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Please select an issue record from the table.");
+            return;
+        }
+
+        int issueId = Integer.parseInt(idStr);
+        String dateStr = txtDate.getText().trim();
+        String remarks = jTextArea1.getText().trim();
+
+        int requestId = Integer.parseInt(((String) jComboBoxRequest.getSelectedItem()).split(" - ")[0]);
+        int unitId = Integer.parseInt(((String) jComboBoxBloodUnit.getSelectedItem()).split(" - ")[0]);
+        int staffId = Integer.parseInt(((String) jComboBoxStaff.getSelectedItem()).split(" - ")[0]);
+
+        String sql = "UPDATE blood_issue SET request_id=?, unit_id=?, staff_id=?, issue_date=?, remarks=? WHERE issue_id=?";
+        
+        try (Connection con = DBConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            
+            ps.setInt(1, requestId);
+            ps.setInt(2, unitId);
+            ps.setInt(3, staffId);
+            ps.setString(4, dateStr);
+            ps.setString(5, remarks);
+            ps.setInt(6, issueId);
+
+            if (ps.executeUpdate() > 0) {
+                JOptionPane.showMessageDialog(this, "Issue updated successfully!");
+                loadData();
+                clearFields();
+            }
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, "Error: " + e.getMessage());
+        }
+    }//GEN-LAST:event_btnUpdateActionPerformed
+
+    private void btnDeleteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDeleteActionPerformed
+        String idStr = txtIssueId.getText().trim();
+        if (idStr.equals("auto") || idStr.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Please select an issue record.");
+            return;
+        }
+
+        int confirm = JOptionPane.showConfirmDialog(this, 
+                "Delete this issue record?\nThe blood unit will remain marked as 'Issued'.", 
+                "Confirm", JOptionPane.YES_NO_OPTION);
+        if (confirm != JOptionPane.YES_OPTION) return;
+
+        int issueId = Integer.parseInt(idStr);
+        String sql = "DELETE FROM blood_issue WHERE issue_id = ?";
+        
+        try (Connection con = DBConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            
+            ps.setInt(1, issueId);
+            
+            if (ps.executeUpdate() > 0) {
+                JOptionPane.showMessageDialog(this, "Issue record deleted successfully!");
+                loadData();
+                clearFields();
+            }
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, "Error deleting: " + e.getMessage());
+        }
+    }//GEN-LAST:event_btnDeleteActionPerformed
+
+    private void btnSearchActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSearchActionPerformed
+        String keyword = txtSearch.getText().trim();
+        if (keyword.isEmpty()) {
+            loadData();
+            return;
+        }
+
+        String sql = "SELECT i.issue_id, r.request_id, u.unit_id, "
+                   + "CONCAT(s.first_name, ' ', s.last_name) AS staff_name, "
+                   + "i.issue_date, i.remarks "
+                   + "FROM blood_issue i "
+                   + "JOIN blood_request r ON i.request_id = r.request_id "
+                   + "JOIN blood_unit u ON i.unit_id = u.unit_id "
+                   + "JOIN staff s ON i.staff_id = s.staff_id "
+                   + "WHERE s.first_name LIKE ? OR s.last_name LIKE ? OR i.remarks LIKE ?";
+        
+        String[] cols = {"ID", "Request", "Unit", "Staff", "Date", "Remarks"};
+        DefaultTableModel model = new DefaultTableModel(cols, 0) {
+            @Override
+            public boolean isCellEditable(int row, int column) { return false; }
+        };
+
+        try (Connection con = DBConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            
+            ps.setString(1, "%" + keyword + "%");
+            ps.setString(2, "%" + keyword + "%");
+            ps.setString(3, "%" + keyword + "%");
+            
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                Vector<Object> row = new Vector<>();
+                for (int i = 1; i <= cols.length; i++) {
+                    row.add(rs.getObject(i));
+                }
+                model.addRow(row);
+            }
+            jTable1.setModel(model);
+            
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }//GEN-LAST:event_btnSearchActionPerformed
+
+    private void btnBackActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnBackActionPerformed
+        MainMenuFrame.Main();
+        this.dispose();
+    }//GEN-LAST:event_btnBackActionPerformed
+
     /**
      * @param args the command line arguments
      */
-    public static void main(String args[]) {
+    public static void Main() {
         /* Set the Nimbus look and feel */
         //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
         /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
@@ -257,14 +497,83 @@ public class BloodIssueFrame extends javax.swing.JFrame {
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(() -> new BloodIssueFrame().setVisible(true));
     }
+        private void loadData() {
+        // 1. Load Blood Requests (Show "ID - Patient (Group)")
+        jComboBoxRequest.removeAllItems();
+        try (Connection con = DBConnection.getConnection();
+             Statement st = con.createStatement();
+             ResultSet rs = st.executeQuery(
+                 "SELECT r.request_id, CONCAT(p.first_name, ' ', p.last_name) AS patient_name, " +
+                 "bg.group_name " +
+                 "FROM blood_request r " +
+                 "JOIN patient p ON r.patient_id = p.patient_id " +
+                 "JOIN blood_group bg ON r.blood_group_id = bg.blood_group_id")) {
+            while (rs.next()) {
+                jComboBoxRequest.addItem(rs.getInt("request_id") + " - " 
+                    + rs.getString("patient_name") + " (" + rs.getString("group_name") + ")");
+            }
+        } catch (SQLException e) { e.printStackTrace(); }
+
+        // 2. Load Available Blood Units (Show "ID - Group (Bank)")
+        jComboBoxBloodUnit.removeAllItems();
+        try (Connection con = DBConnection.getConnection();
+             Statement st = con.createStatement();
+             ResultSet rs = st.executeQuery(
+                 "SELECT u.unit_id, bg.group_name, b.bank_name " +
+                 "FROM blood_unit u " +
+                 "JOIN blood_group bg ON u.blood_group_id = bg.blood_group_id " +
+                 "JOIN blood_bank b ON u.bank_id = b.bank_id " +
+                 "WHERE u.status IN ('Available', 'Reserved')")) {
+            while (rs.next()) {
+                jComboBoxBloodUnit.addItem(rs.getInt("unit_id") + " - " 
+                    + rs.getString("group_name") + " (" + rs.getString("bank_name") + ")");
+            }
+        } catch (SQLException e) { e.printStackTrace(); }
+
+        // 3. Load Staff (Doctors and Nurses)
+        jComboBoxStaff.removeAllItems();
+        try (Connection con = DBConnection.getConnection();
+             Statement st = con.createStatement();
+             ResultSet rs = st.executeQuery(
+                 "SELECT staff_id, CONCAT(first_name, ' ', last_name) AS full_name " +
+                 "FROM staff WHERE role IN ('Doctor', 'Nurse')")) {
+            while (rs.next()) {
+                jComboBoxStaff.addItem(rs.getInt("staff_id") + " - " + rs.getString("full_name"));
+            }
+        } catch (SQLException e) { e.printStackTrace(); }
+
+        // 4. Load Issues into the Table
+        String sql = "SELECT i.issue_id, r.request_id, u.unit_id, "
+                   + "CONCAT(s.first_name, ' ', s.last_name) AS staff_name, "
+                   + "i.issue_date, i.remarks "
+                   + "FROM blood_issue i "
+                   + "JOIN blood_request r ON i.request_id = r.request_id "
+                   + "JOIN blood_unit u ON i.unit_id = u.unit_id "
+                   + "JOIN staff s ON i.staff_id = s.staff_id";
+        
+        String[] cols = {"ID", "Request", "Unit", "Staff", "Date", "Remarks"};
+        DatabaseHelper.loadTableData(sql, jTable1, cols);
+    }
+
+    private void clearFields() {
+        txtIssueId.setText("auto");
+        txtDate.setText("yyyy-mm-dd hh:mm:ss");
+        jTextArea1.setText("");
+        
+        if (jComboBoxRequest.getItemCount() > 0) jComboBoxRequest.setSelectedIndex(0);
+        if (jComboBoxBloodUnit.getItemCount() > 0) jComboBoxBloodUnit.setSelectedIndex(0);
+        if (jComboBoxStaff.getItemCount() > 0) jComboBoxStaff.setSelectedIndex(0);
+        
+        txtSearch.setText("");
+    }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnAdd;
     private javax.swing.JButton btnBack;
     private javax.swing.JButton btnClear;
     private javax.swing.JButton btnDelete;
+    private javax.swing.JButton btnSearch;
     private javax.swing.JButton btnUpdate;
-    private javax.swing.JButton jButton1;
     private javax.swing.JComboBox<String> jComboBoxBloodUnit;
     private javax.swing.JComboBox<String> jComboBoxRequest;
     private javax.swing.JComboBox<String> jComboBoxStaff;
