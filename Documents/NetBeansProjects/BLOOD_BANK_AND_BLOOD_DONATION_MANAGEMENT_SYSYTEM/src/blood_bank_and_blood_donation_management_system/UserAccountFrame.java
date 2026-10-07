@@ -4,6 +4,11 @@
  */
 package blood_bank_and_blood_donation_management_system;
 
+import java.sql.*;
+import javax.swing.JOptionPane;
+import java.util.Vector;
+import javax.swing.table.DefaultTableModel;
+
 /**
  *
  * @author LENOVO
@@ -17,6 +22,12 @@ public class UserAccountFrame extends javax.swing.JFrame {
      */
     public UserAccountFrame() {
         initComponents();
+        
+        setTitle("Blood Bank System - User Account Management");
+        setLocationRelativeTo(null);
+        setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
+        
+        loadData();
     }
 
     /**
@@ -57,6 +68,11 @@ public class UserAccountFrame extends javax.swing.JFrame {
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
         jPanel1.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0), 2));
+        jPanel1.addFocusListener(new java.awt.event.FocusAdapter() {
+            public void focusGained(java.awt.event.FocusEvent evt) {
+                jPanel1FocusGained(evt);
+            }
+        });
 
         jLabel1.setFont(new java.awt.Font("Segoe UI", 1, 18)); // NOI18N
         jLabel1.setText("           User Account Management ");
@@ -64,22 +80,28 @@ public class UserAccountFrame extends javax.swing.JFrame {
         btnDelete.setBackground(new java.awt.Color(255, 204, 204));
         btnDelete.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
         btnDelete.setText("Delete");
+        btnDelete.addActionListener(this::btnDeleteActionPerformed);
 
         btnUpdate.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
         btnUpdate.setText("Update");
+        btnUpdate.addActionListener(this::btnUpdateActionPerformed);
 
         btnAdd.setBackground(new java.awt.Color(204, 255, 204));
         btnAdd.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
         btnAdd.setText("Add");
+        btnAdd.addActionListener(this::btnAddActionPerformed);
 
         btnClear.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
         btnClear.setText("Clear");
+        btnClear.addActionListener(this::btnClearActionPerformed);
 
         btnBack.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
         btnBack.setText("Back to Menu");
+        btnBack.addActionListener(this::btnBackActionPerformed);
 
         jButton1.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
         jButton1.setText("Search");
+        jButton1.addActionListener(this::jButton1ActionPerformed);
 
         lblSearch.setText("Search:");
 
@@ -95,6 +117,11 @@ public class UserAccountFrame extends javax.swing.JFrame {
                 "ID", "Staff", "Username", "Access", "Last Login"
             }
         ));
+        jTable1.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                jTable1MouseClicked(evt);
+            }
+        });
         jScrollPane1.setViewportView(jTable1);
 
         jPanel2.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(204, 204, 204)));
@@ -110,8 +137,6 @@ public class UserAccountFrame extends javax.swing.JFrame {
         txtUserId.setForeground(new java.awt.Color(102, 102, 102));
         txtUserId.setText("auto");
 
-        txtLastLogin.setFont(new java.awt.Font("Segoe UI", 0, 8)); // NOI18N
-        txtLastLogin.setForeground(new java.awt.Color(204, 204, 204));
         txtLastLogin.setText("yyyy-mm-dd");
 
         lblDate.setText("Last Login:");
@@ -277,10 +302,216 @@ public class UserAccountFrame extends javax.swing.JFrame {
         // TODO add your handling code here:
     }//GEN-LAST:event_jComboBoxAccessLevelActionPerformed
 
+    private void btnAddActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnAddActionPerformed
+        String username = txtFname.getText().trim();
+        String password = new String(UserPassword.getPassword());
+        String accessLevel = (String) jComboBoxAccessLevel.getSelectedItem();
+        String staffName = (String) jComboBoxStaff.getSelectedItem();
+
+        if (username.isEmpty() || password.isEmpty() || staffName == null) {
+            JOptionPane.showMessageDialog(this, "Please fill in all required fields.");
+            return;
+        }
+
+        // Get Staff ID based on selected staff name (First + Last)
+        int staffId = 0;
+        String staffSql = "SELECT staff_id FROM staff WHERE CONCAT(first_name, ' ', last_name) = ?";
+        try (Connection con = DBConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(staffSql)) {
+            ps.setString(1, staffName);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) staffId = rs.getInt("staff_id");
+        } catch (SQLException e) { e.printStackTrace(); }
+        
+        if (staffId == 0) {
+            JOptionPane.showMessageDialog(this, "Error: Could not find staff.");
+            return;
+        }
+
+        // Insert with SHA2 hashing (matches LoginFrame logic)
+        String sql = "INSERT INTO user_account (staff_id, username, password_hash, access_level) "
+                   + "VALUES (?, ?, SHA2(?, 256), ?)";
+        
+        try (Connection con = DBConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            
+            ps.setInt(1, staffId);
+            ps.setString(2, username);
+            ps.setString(3, password); // SHA2 applied directly in SQL
+            ps.setString(4, accessLevel);
+
+            if (ps.executeUpdate() > 0) {
+                JOptionPane.showMessageDialog(this, "User account created successfully!");
+                loadData();
+                clearFields();
+            }
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, "Error: " + e.getMessage());
+        }
+    }//GEN-LAST:event_btnAddActionPerformed
+
+    private void btnClearActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnClearActionPerformed
+        clearFields();
+    }//GEN-LAST:event_btnClearActionPerformed
+
+    private void jTable1MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jTable1MouseClicked
+        int selectedRow = jTable1.getSelectedRow();
+        if (selectedRow == -1) return;
+
+        DefaultTableModel model = (DefaultTableModel) jTable1.getModel();
+        
+        txtUserId.setText(model.getValueAt(selectedRow, 0).toString());
+        jComboBoxStaff.setSelectedItem(model.getValueAt(selectedRow, 1).toString());
+        txtFname.setText(model.getValueAt(selectedRow, 2).toString());
+        jComboBoxAccessLevel.setSelectedItem(model.getValueAt(selectedRow, 3).toString());
+        
+        Object lastLogin = model.getValueAt(selectedRow, 4);
+        txtLastLogin.setText(lastLogin != null ? lastLogin.toString() : "");
+        
+        UserPassword.setText(""); // Never load passwords into the UI for security reasons
+    }//GEN-LAST:event_jTable1MouseClicked
+
+    private void btnUpdateActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnUpdateActionPerformed
+        String userIdStr = txtUserId.getText().trim();
+        if (userIdStr.equals("auto") || userIdStr.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Please select a user account from the table.");
+            return;
+        }
+
+        int userId = Integer.parseInt(userIdStr);
+        String username = txtFname.getText().trim();
+        String password = new String(UserPassword.getPassword());
+        String accessLevel = (String) jComboBoxAccessLevel.getSelectedItem();
+        String staffName = (String) jComboBoxStaff.getSelectedItem();
+        
+        // Get Staff ID
+        int staffId = 0;
+        String staffSql = "SELECT staff_id FROM staff WHERE CONCAT(first_name, ' ', last_name) = ?";
+        try (Connection con = DBConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(staffSql)) {
+            ps.setString(1, staffName);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) staffId = rs.getInt("staff_id");
+        } catch (SQLException e) { e.printStackTrace(); }
+
+        String sql;
+        if (password.isEmpty()) {
+            // Update WITHOUT changing password
+            sql = "UPDATE user_account SET staff_id=?, username=?, access_level=? WHERE user_id=?";
+        } else {
+            // Update WITH new password
+            sql = "UPDATE user_account SET staff_id=?, username=?, password_hash=SHA2(?, 256), access_level=? WHERE user_id=?";
+        }
+        
+        try (Connection con = DBConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            
+            ps.setInt(1, staffId);
+            ps.setString(2, username);
+            
+            if (password.isEmpty()) {
+                ps.setString(3, accessLevel);
+                ps.setInt(4, userId);
+            } else {
+                ps.setString(3, password);
+                ps.setString(4, accessLevel);
+                ps.setInt(5, userId);
+            }
+
+            if (ps.executeUpdate() > 0) {
+                JOptionPane.showMessageDialog(this, "User account updated successfully!");
+                loadData();
+                clearFields();
+            }
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, "Error: " + e.getMessage());
+        }
+    }//GEN-LAST:event_btnUpdateActionPerformed
+
+    private void btnDeleteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDeleteActionPerformed
+        String userIdStr = txtUserId.getText().trim();
+        if (userIdStr.equals("auto") || userIdStr.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Please select a user account from the table.");
+            return;
+        }
+
+        int confirm = JOptionPane.showConfirmDialog(this, 
+                "Are you sure you want to delete this user account?", "Confirm Delete", 
+                JOptionPane.YES_NO_OPTION);
+        if (confirm != JOptionPane.YES_OPTION) return;
+
+        int userId = Integer.parseInt(userIdStr);
+        String sql = "DELETE FROM user_account WHERE user_id = ?";
+        
+        try (Connection con = DBConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            
+            ps.setInt(1, userId);
+            
+            if (ps.executeUpdate() > 0) {
+                JOptionPane.showMessageDialog(this, "User account deleted successfully!");
+                loadData();
+                clearFields();
+            }
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, "Error deleting: " + e.getMessage());
+        }
+    }//GEN-LAST:event_btnDeleteActionPerformed
+
+    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
+        String keyword = txtSearch.getText().trim();
+        if (keyword.isEmpty()) {
+            loadData();
+            return;
+        }
+
+        String sql = "SELECT u.user_id, CONCAT(s.first_name, ' ', s.last_name) AS staff_name, "
+                   + "u.username, u.access_level, u.last_login "
+                   + "FROM user_account u "
+                   + "JOIN staff s ON u.staff_id = s.staff_id "
+                   + "WHERE u.username LIKE ? OR s.first_name LIKE ? OR s.last_name LIKE ?";
+        
+        String[] cols = {"ID", "Staff", "Username", "Access", "Last Login"};
+        DefaultTableModel model = new DefaultTableModel(cols, 0) {
+            @Override
+            public boolean isCellEditable(int row, int column) { return false; }
+        };
+
+        try (Connection con = DBConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            
+            ps.setString(1, "%" + keyword + "%");
+            ps.setString(2, "%" + keyword + "%");
+            ps.setString(3, "%" + keyword + "%");
+            
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                Vector<Object> row = new Vector<>();
+                for (int i = 1; i <= cols.length; i++) {
+                    row.add(rs.getObject(i));
+                }
+                model.addRow(row);
+            }
+            jTable1.setModel(model);
+            
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }//GEN-LAST:event_jButton1ActionPerformed
+
+    private void btnBackActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnBackActionPerformed
+        MainMenuFrame.Main();
+        this.dispose();
+    }//GEN-LAST:event_btnBackActionPerformed
+
+    private void jPanel1FocusGained(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_jPanel1FocusGained
+        // TODO add your handling code here:
+    }//GEN-LAST:event_jPanel1FocusGained
+
     /**
      * @param args the command line arguments
      */
-    public static void main(String args[]) {
+    public static void Main() {
         /* Set the Nimbus look and feel */
         //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
         /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
@@ -300,6 +531,44 @@ public class UserAccountFrame extends javax.swing.JFrame {
 
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(() -> new UserAccountFrame().setVisible(true));
+    }
+        private void loadData() {
+        // 1. Load Staff into the ComboBox (showing "FirstName LastName")
+        // Note: We must use CONCAT here to create a display name
+        jComboBoxStaff.removeAllItems();
+        try (Connection con = DBConnection.getConnection();
+             Statement st = con.createStatement();
+             ResultSet rs = st.executeQuery("SELECT CONCAT(first_name, ' ', last_name) AS full_name FROM staff")) {
+            while (rs.next()) {
+                jComboBoxStaff.addItem(rs.getString("full_name"));
+            }
+        } catch (SQLException e) { e.printStackTrace(); }
+
+        // 2. Load Access Level into ComboBox (fixed values matching your ENUM)
+        jComboBoxAccessLevel.removeAllItems();
+        jComboBoxAccessLevel.addItem("Admin");
+        jComboBoxAccessLevel.addItem("Staff");
+
+        // 3. Load User Accounts into the Table
+        String sql = "SELECT u.user_id, CONCAT(s.first_name, ' ', s.last_name) AS staff_name, "
+                   + "u.username, u.access_level, u.last_login "
+                   + "FROM user_account u "
+                   + "JOIN staff s ON u.staff_id = s.staff_id";
+        
+        String[] cols = {"ID", "Staff", "Username", "Access", "Last Login"};
+        DatabaseHelper.loadTableData(sql, jTable1, cols);
+    }
+
+    private void clearFields() {
+        txtUserId.setText("auto");
+        txtFname.setText(""); // Username field
+        UserPassword.setText(""); // Password field
+        txtLastLogin.setText("");
+        
+        if (jComboBoxStaff.getItemCount() > 0) jComboBoxStaff.setSelectedIndex(0);
+        if (jComboBoxAccessLevel.getItemCount() > 0) jComboBoxAccessLevel.setSelectedIndex(0);
+        
+        txtSearch.setText("");
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables

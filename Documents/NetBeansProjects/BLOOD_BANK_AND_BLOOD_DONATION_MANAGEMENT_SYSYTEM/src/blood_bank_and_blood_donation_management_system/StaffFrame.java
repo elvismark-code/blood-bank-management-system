@@ -4,6 +4,11 @@
  */
 package blood_bank_and_blood_donation_management_system;
 
+import java.sql.*;
+import javax.swing.JOptionPane;
+import java.util.Vector;
+import javax.swing.table.DefaultTableModel;
+
 /**
  *
  * @author LENOVO
@@ -17,6 +22,11 @@ public class StaffFrame extends javax.swing.JFrame {
      */
     public StaffFrame() {
         initComponents();
+        setTitle("Blood Bank System - Staff Management");
+        setLocationRelativeTo(null);
+        setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
+        
+        loadData();
     }
 
     /**
@@ -52,7 +62,7 @@ public class StaffFrame extends javax.swing.JFrame {
         btnDelete = new javax.swing.JButton();
         btnClear = new javax.swing.JButton();
         btnBack = new javax.swing.JButton();
-        jButton1 = new javax.swing.JButton();
+        btnSearch = new javax.swing.JButton();
         txtSearch = new javax.swing.JTextField();
         lblSearch = new javax.swing.JLabel();
         jScrollPane1 = new javax.swing.JScrollPane();
@@ -80,8 +90,6 @@ public class StaffFrame extends javax.swing.JFrame {
 
         lblEmail.setText("Email:");
 
-        txtHireDate.setFont(new java.awt.Font("Segoe UI", 0, 8)); // NOI18N
-        txtHireDate.setForeground(new java.awt.Color(204, 204, 204));
         txtHireDate.setText("yyyy-mm-dd");
 
         lblDate.setText("Hire Date:");
@@ -93,7 +101,7 @@ public class StaffFrame extends javax.swing.JFrame {
         jLabel2.setText("Role:");
 
         jComboBoxRole.setForeground(new java.awt.Color(204, 204, 204));
-        jComboBoxRole.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
+        jComboBoxRole.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Doctor", "Nurse", "Lab Technician", "Receptionist", "Manager" }));
         jComboBoxRole.addActionListener(this::jComboBoxRoleActionPerformed);
 
         jComboBoxBankName.setForeground(new java.awt.Color(204, 204, 204));
@@ -184,22 +192,28 @@ public class StaffFrame extends javax.swing.JFrame {
         btnAdd.setBackground(new java.awt.Color(204, 255, 204));
         btnAdd.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
         btnAdd.setText("Add");
+        btnAdd.addActionListener(this::btnAddActionPerformed);
 
         btnUpdate.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
         btnUpdate.setText("Update");
+        btnUpdate.addActionListener(this::btnUpdateActionPerformed);
 
         btnDelete.setBackground(new java.awt.Color(255, 204, 204));
         btnDelete.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
         btnDelete.setText("Delete");
+        btnDelete.addActionListener(this::btnDeleteActionPerformed);
 
         btnClear.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
         btnClear.setText("Clear");
+        btnClear.addActionListener(this::btnClearActionPerformed);
 
         btnBack.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
         btnBack.setText("Back to Menu");
+        btnBack.addActionListener(this::btnBackActionPerformed);
 
-        jButton1.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
-        jButton1.setText("Search");
+        btnSearch.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
+        btnSearch.setText("Search");
+        btnSearch.addActionListener(this::btnSearchActionPerformed);
 
         lblSearch.setText("Search:");
 
@@ -214,6 +228,11 @@ public class StaffFrame extends javax.swing.JFrame {
                 "ID", "Bank ", "First Name", "Second Name", "Role", "Phone", "Email", "Hire Date"
             }
         ));
+        jTable1.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                jTable1MouseClicked(evt);
+            }
+        });
         jScrollPane1.setViewportView(jTable1);
 
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
@@ -226,7 +245,7 @@ public class StaffFrame extends javax.swing.JFrame {
                 .addGap(18, 18, 18)
                 .addComponent(txtSearch, javax.swing.GroupLayout.PREFERRED_SIZE, 207, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(jButton1)
+                .addComponent(btnSearch)
                 .addGap(0, 0, Short.MAX_VALUE))
             .addGroup(jPanel1Layout.createSequentialGroup()
                 .addGap(40, 40, 40)
@@ -272,7 +291,7 @@ public class StaffFrame extends javax.swing.JFrame {
                     .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                         .addComponent(lblSearch)
                         .addComponent(txtSearch, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addComponent(jButton1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                    .addComponent(btnSearch, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 125, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap(61, Short.MAX_VALUE))
@@ -300,10 +319,194 @@ public class StaffFrame extends javax.swing.JFrame {
         // TODO add your handling code here:
     }//GEN-LAST:event_jComboBoxRoleActionPerformed
 
+    private void btnAddActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnAddActionPerformed
+        String firstName = txtFname.getText().trim();
+        String lastName = txtLname.getText().trim();
+        String role = (String) jComboBoxRole.getSelectedItem();
+        String phone = txtPhone.getText().trim();
+        String email = txtEmail.getText().trim();
+        String hireDate = txtHireDate.getText().trim();
+        
+        String bankName = (String) jComboBoxBankName.getSelectedItem();
+        
+        if (firstName.isEmpty() || lastName.isEmpty() || bankName == null) {
+            JOptionPane.showMessageDialog(this, "Please fill in required fields.");
+            return;
+        }
+
+        // Get Bank ID from Bank Name
+        int bankId = DatabaseHelper.getIdByName("blood_bank", "bank_id", "bank_name", bankName);
+
+        String sql = "INSERT INTO staff (bank_id, first_name, last_name, role, phone, email, hire_date) VALUES (?, ?, ?, ?, ?, ?, ?)";
+        
+        try (Connection con = DBConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            
+            ps.setInt(1, bankId);
+            ps.setString(2, firstName);
+            ps.setString(3, lastName);
+            ps.setString(4, role);
+            ps.setString(5, phone);
+            ps.setString(6, email);
+            ps.setString(7, hireDate);
+
+            if (ps.executeUpdate() > 0) {
+                JOptionPane.showMessageDialog(this, "Staff added successfully!");
+                loadData();
+                clearFields();
+            }
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, "Error: " + e.getMessage());
+        }
+    }//GEN-LAST:event_btnAddActionPerformed
+
+    private void btnClearActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnClearActionPerformed
+        clearFields();
+    }//GEN-LAST:event_btnClearActionPerformed
+
+    private void jTable1MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jTable1MouseClicked
+        int selectedRow = jTable1.getSelectedRow();
+        if (selectedRow == -1) return;
+
+        DefaultTableModel model = (DefaultTableModel) jTable1.getModel();
+        
+        txtStaffId.setText(model.getValueAt(selectedRow, 0).toString());
+        jComboBoxBankName.setSelectedItem(model.getValueAt(selectedRow, 1).toString());
+        txtFname.setText(model.getValueAt(selectedRow, 2).toString());
+        txtLname.setText(model.getValueAt(selectedRow, 3).toString());
+        jComboBoxRole.setSelectedItem(model.getValueAt(selectedRow, 4).toString());
+        
+        Object phone = model.getValueAt(selectedRow, 5);
+        txtPhone.setText(phone != null ? phone.toString() : "");
+        
+        Object email = model.getValueAt(selectedRow, 6);
+        txtEmail.setText(email != null ? email.toString() : "");
+        
+        Object hireDate = model.getValueAt(selectedRow, 7);
+        txtHireDate.setText(hireDate != null ? hireDate.toString() : "");
+    }//GEN-LAST:event_jTable1MouseClicked
+
+    private void btnUpdateActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnUpdateActionPerformed
+        String staffIdStr = txtStaffId.getText().trim();
+        if (staffIdStr.equals("auto") || staffIdStr.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Please select a staff member from the table.");
+            return;
+        }
+
+        int staffId = Integer.parseInt(staffIdStr);
+        String firstName = txtFname.getText().trim();
+        String lastName = txtLname.getText().trim();
+        String role = (String) jComboBoxRole.getSelectedItem();
+        String phone = txtPhone.getText().trim();
+        String email = txtEmail.getText().trim();
+        String hireDate = txtHireDate.getText().trim();
+        String bankName = (String) jComboBoxBankName.getSelectedItem();
+        
+        int bankId = DatabaseHelper.getIdByName("blood_bank", "bank_id", "bank_name", bankName);
+
+        String sql = "UPDATE staff SET bank_id=?, first_name=?, last_name=?, role=?, phone=?, email=?, hire_date=? WHERE staff_id=?";
+        
+        try (Connection con = DBConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            
+            ps.setInt(1, bankId);
+            ps.setString(2, firstName);
+            ps.setString(3, lastName);
+            ps.setString(4, role);
+            ps.setString(5, phone);
+            ps.setString(6, email);
+            ps.setString(7, hireDate);
+            ps.setInt(8, staffId);
+
+            if (ps.executeUpdate() > 0) {
+                JOptionPane.showMessageDialog(this, "Staff updated successfully!");
+                loadData();
+                clearFields();
+            }
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, "Error: " + e.getMessage());
+        }
+    }//GEN-LAST:event_btnUpdateActionPerformed
+
+    private void btnDeleteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDeleteActionPerformed
+        String staffIdStr = txtStaffId.getText().trim();
+        if (staffIdStr.equals("auto") || staffIdStr.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Please select a staff member.");
+            return;
+        }
+
+        int confirm = JOptionPane.showConfirmDialog(this, 
+                "Delete this staff member?", "Confirm", JOptionPane.YES_NO_OPTION);
+        if (confirm != JOptionPane.YES_OPTION) return;
+
+        int staffId = Integer.parseInt(staffIdStr);
+        String sql = "DELETE FROM staff WHERE staff_id = ?";
+        
+        try (Connection con = DBConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            
+            ps.setInt(1, staffId);
+            
+            if (ps.executeUpdate() > 0) {
+                JOptionPane.showMessageDialog(this, "Staff deleted successfully!");
+                loadData();
+                clearFields();
+            }
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, "Cannot delete. Linked to other records. Error: " + e.getMessage());
+        }
+    }//GEN-LAST:event_btnDeleteActionPerformed
+
+    private void btnSearchActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSearchActionPerformed
+        String keyword = txtSearch.getText().trim();
+        if (keyword.isEmpty()) {
+            loadData();
+            return;
+        }
+
+        String sql = "SELECT s.staff_id, b.bank_name, s.first_name, s.last_name, s.role, "
+                   + "s.phone, s.email, s.hire_date "
+                   + "FROM staff s "
+                   + "JOIN blood_bank b ON s.bank_id = b.bank_id "
+                   + "WHERE s.first_name LIKE ? OR s.last_name LIKE ? OR s.role LIKE ?";
+        
+        String[] cols = {"ID", "Bank", "First Name", "Last Name", "Role", "Phone", "Email", "Hire Date"};
+        DefaultTableModel model = new DefaultTableModel(cols, 0) {
+            @Override
+            public boolean isCellEditable(int row, int column) { return false; }
+        };
+
+        try (Connection con = DBConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            
+            ps.setString(1, "%" + keyword + "%");
+            ps.setString(2, "%" + keyword + "%");
+            ps.setString(3, "%" + keyword + "%");
+            
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                Vector<Object> row = new Vector<>();
+                for (int i = 1; i <= cols.length; i++) {
+                    row.add(rs.getObject(i));
+                }
+                model.addRow(row);
+            }
+            jTable1.setModel(model);
+            
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }//GEN-LAST:event_btnSearchActionPerformed
+
+    private void btnBackActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnBackActionPerformed
+        MainMenuFrame.Main();
+        this.dispose();
+    }//GEN-LAST:event_btnBackActionPerformed
+
     /**
      * @param args the command line arguments
      */
-    public static void main(String args[]) {
+    public static void Main() {
         /* Set the Nimbus look and feel */
         //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
         /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
@@ -324,14 +527,44 @@ public class StaffFrame extends javax.swing.JFrame {
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(() -> new StaffFrame().setVisible(true));
     }
+        private void loadData() {
+        // 1. Load Banks into the ComboBox
+        DatabaseHelper.loadComboBox("SELECT bank_name FROM blood_bank", jComboBoxBankName);
+        
+        // 2. Load Staff into the Table (with a JOIN to show Bank Name instead of ID)
+        String sql = "SELECT s.staff_id, b.bank_name, s.first_name, s.last_name, s.role, "
+                   + "s.phone, s.email, s.hire_date "
+                   + "FROM staff s "
+                   + "JOIN blood_bank b ON s.bank_id = b.bank_id";
+        
+        String[] cols = {"ID", "Bank", "First Name", "Last Name", "Role", "Phone", "Email", "Hire Date"};
+        DatabaseHelper.loadTableData(sql, jTable1, cols);
+    }
+
+    private void clearFields() {
+        txtStaffId.setText("auto");
+        txtFname.setText("");
+        txtLname.setText("");
+        txtPhone.setText("");
+        txtEmail.setText("");
+        txtHireDate.setText("yyyy-mm-dd");
+        
+        if (jComboBoxBankName.getItemCount() > 0) {
+            jComboBoxBankName.setSelectedIndex(0);
+        }
+        if (jComboBoxRole.getItemCount() > 0) {
+            jComboBoxRole.setSelectedIndex(0);
+        }
+        txtSearch.setText("");
+    }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnAdd;
     private javax.swing.JButton btnBack;
     private javax.swing.JButton btnClear;
     private javax.swing.JButton btnDelete;
+    private javax.swing.JButton btnSearch;
     private javax.swing.JButton btnUpdate;
-    private javax.swing.JButton jButton1;
     private javax.swing.JComboBox<String> jComboBoxBankName;
     private javax.swing.JComboBox<String> jComboBoxRole;
     private javax.swing.JLabel jLabel1;
